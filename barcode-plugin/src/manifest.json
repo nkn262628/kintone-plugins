@@ -1,0 +1,53 @@
+{
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "name": {
+    "ja": "進出貨/調撥條碼掃描外掛",
+    "en": "Barcode Scanner Plugin",
+    "zh": "進出貨/調撥條碼掃描外掛",
+    "zh-TW": "進出貨/調撥條碼掃描外掛"
+  },
+  "description": {
+    "ja": "條碼掃描自動帶入商品資料，支援採購、出貨、調撥",
+    "en": "Barcode scanner for auto-filling product data. Supports purchase, shipment, and transfer.",
+    "zh": "條碼掃描自動帶入商品資料，支援採購、出貨、調撥",
+    "zh-TW": "條碼掃描自動帶入商品資料，支援採購、出貨、調撥"
+  },
+  "icon": "image/icon.png",
+  "desktop": {
+    "js": [
+      "js/zxing-browser.min.js",
+      "js/desktop-core.js",
+      "js/desktop-inbound.js",
+      "js/desktop-outbound.js",
+      "js/desktop-transfer.js",
+      "js/desktop-events.js"
+    ],
+    "css": []
+  },
+  "mobile": {
+    "js": [
+      "js/zxing-browser.min.js",
+      "js/desktop-core.js",
+      "js/desktop-inbound.js",
+      "js/desktop-outbound.js",
+      "js/desktop-transfer.js",
+      "js/desktop-events.js"
+    ],
+    "css": []
+  },
+  "config": {
+    "html": "html/config.html",
+    "js": [
+      "js/config.js"
+    ],
+    "css": [
+      "css/config.css",
+      "css/config-mode-switch.css"
+    ],
+    "required_params": [
+      "productAppId"
+    ]
+  }
+}

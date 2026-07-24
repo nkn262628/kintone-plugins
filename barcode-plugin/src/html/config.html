@@ -1,0 +1,325 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>進出貨/調撥條碼掃描外掛 設定</title>
+  <link rel="stylesheet" href="https://static.cybozu.com/contents/k/image/argo/customization/51/kintone.css">
+  <link rel="stylesheet" href="../css/config.css">
+  <link rel="stylesheet" href="../css/config-mode-switch.css">
+</head>
+
+<body>
+  <div class="config-wrap">
+    <div class="config-header">
+      <span class="config-title">進出貨/調撥條碼掃描外掛 設定</span>
+      <span class="config-subtitle" style="margin-left: 10px; color:#666;">先選擇模式，頁面會自動顯示對應欄位，並帶入預設值</span>
+    </div>
+
+    <!-- 頂層模式切換卡片 -->
+    <section class="config-section" style="padding-bottom: 16px;">
+      <div class="mode-switch">
+        <button type="button" class="mode-card" id="mode-btn-in">
+          <span class="mode-check">✓</span>
+          <span class="mode-icon mode-icon-in">入</span>
+          <div class="mode-text">
+            <div class="mode-title">進貨單模式</div>
+            <div class="mode-sub">廠商進貨、入庫作業</div>
+          </div>
+        </button>
+        <button type="button" class="mode-card" id="mode-btn-out">
+          <span class="mode-check">✓</span>
+          <span class="mode-icon mode-icon-out">出</span>
+          <div class="mode-text">
+            <div class="mode-title">出貨單模式</div>
+            <div class="mode-sub">客戶出貨、銷貨作業</div>
+          </div>
+        </button>
+        <button type="button" class="mode-card" id="mode-btn-transfer">
+          <span class="mode-check">✓</span>
+          <span class="mode-icon mode-icon-transfer">調</span>
+          <div class="mode-text">
+            <div class="mode-title">調撥單模式</div>
+            <div class="mode-sub">倉庫互調、借調歸還</div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <section class="config-section">
+      <div class="section-title">關聯 App 設定</div>
+      <div class="field-grid">
+        <div class="field-item">
+          <label>商品主檔 App ID <span class="required">*</span></label>
+          <div class="kintoneplugin-input-outer">
+            <input class="kintoneplugin-input-text" type="text" id="productAppId" placeholder="例：2255">
+          </div>
+        </div>
+        <div class="field-item">
+          <label>庫存 App ID</label>
+          <div class="kintoneplugin-input-outer">
+            <input class="kintoneplugin-input-text" type="text" id="invAppId" placeholder="例：2258">
+          </div>
+        </div>
+        <div class="field-item" id="wrap-customerApp">
+          <label>客戶資料 App ID</label>
+          <div class="kintoneplugin-input-outer">
+            <input class="kintoneplugin-input-text" type="text" id="customerAppId" placeholder="例：2253">
+          </div>
+          <div class="hint-text">用於判斷客戶類型帶入客製價格。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="config-section" id="wrap-productFieldsSection">
+      <div class="section-title">商品主檔欄位對應</div>
+      <div class="field-grid">
+        <div class="field-item">
+          <label>條碼編號欄位代碼</label>
+          <div class="kintoneplugin-input-outer"><input class="kintoneplugin-input-text" type="text" id="prodBarcode"
+              placeholder="條碼編號"></div>
+        </div>
+        <div class="field-item">
+          <label>中文名稱欄位代碼</label>
+          <div class="kintoneplugin-input-outer"><input class="kintoneplugin-input-text" type="text" id="prodNameField"
+              placeholder="中文名稱"></div>
+        </div>
+        <div class="field-item">
+          <label>商品料號欄位代碼</label>
+          <div class="kintoneplugin-input-outer"><input class="kintoneplugin-input-text" type="text" id="prodCodeField"
+              placeholder="商品料號"></div>
+        </div>
+        <div class="field-item" id="wrap-suppTable">
+          <label>供應商子表格代碼</label>
+          <div class="kintoneplugin-input-outer"><input class="kintoneplugin-input-text" type="text" id="prodSuppTable"
+              placeholder="供應商選單"></div>
+        </div>
+        <div class="field-item" id="wrap-suppName">
+          <label>供應商名稱欄位（子表格內）</label>
+          <div class="kintoneplugin-input-outer"><input class="kintoneplugin-input-text" type="text" id="suppName"
+              placeholder="廠商名稱"></div>
+        </div>
+        <div class="field-item" id="wrap-suppPrice">
+          <label>廠商定價欄位（子表格內）</label>
+          <div class="kintoneplugin-input-outer"><input class="kintoneplugin-input-text" type="text" id="suppPrice"
+              placeholder="廠商定價"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="config-section">
+      <div class="section-title">本 App：主表單欄位對應</div>
+      <div class="field-grid">
+        <div class="field-item">
+          <label id="lbl-poNum">單號欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fPoNum"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-supplierName">
+          <label>廠商名稱欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fSupplierName"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-supplierKey">
+          <label>廠商全名欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fSupplierKey"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-customerType">
+          <label>客戶類型欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fCustomerType"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-customerName">
+          <label>客戶名稱欄位（選客戶用的查找欄位）</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fCustomerName"></select></div>
+          </div>
+          <div class="hint-text">選此欄位後會自動帶入客戶類型，連動重算明細價格。</div>
+        </div>
+        <div class="field-item" id="wrap-status">
+          <label>是否結案欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fStatus"></select></div>
+          </div>
+        </div>
+
+        <!-- ── 調撥模式專屬：撥出／撥入倉庫 ── -->
+        <div class="field-item" id="wrap-fromWh">
+          <label>撥出倉庫欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fFromWh"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-toWh">
+          <label>撥入倉庫欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fToWh"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-fromWhTrigger">
+          <label>撥出倉庫觸發欄位（Lookup 連動目標）</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fFromWhTrigger"></select></div>
+          </div>
+          <div class="hint-text hint-warn">⚠️ 若「撥出倉庫」是 Lookup 欄位，這裡請選它連動帶出的唯讀欄位，否則選取時不會觸發即時庫存檢查。若本身就是一般欄位可留空。</div>
+        </div>
+        <div class="field-item" id="wrap-toWhTrigger">
+          <label>撥入倉庫觸發欄位（Lookup 連動目標）</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fToWhTrigger"></select></div>
+          </div>
+          <div class="hint-text hint-warn">⚠️ 同上，對應「撥入倉庫」的 Lookup 連動唯讀欄位。</div>
+        </div>
+
+        <!-- ── 調撥模式專屬：調撥狀態／性質／借還 ── -->
+        <div class="field-item" id="wrap-transferStatus">
+          <label>調撥狀態欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fTransferStatus"></select></div>
+          </div>
+          <div class="hint-text">選項需包含「處理中」「已發貨/運輸中」「調撥完成」三個值。</div>
+        </div>
+        <div class="field-item" id="wrap-transferType">
+          <label>調撥性質欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fTransferType"></select></div>
+          </div>
+          <div class="hint-text">選項需包含「借調撥出」「借調歸還」等值。</div>
+        </div>
+        <div class="field-item" id="wrap-returnStatus">
+          <label>歸還狀態欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fReturnStatus"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-refNo">
+          <label>對應借調單號欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fRefNo"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-transferDate">
+          <label>調撥日期欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fTransferDate"></select></div>
+          </div>
+        </div>
+
+        <div class="field-item">
+          <label>掃描按鈕空間元素 ID</label>
+          <div class="kintoneplugin-input-outer"><input class="kintoneplugin-input-text" type="text" id="scanSpaceId"
+              placeholder="scan_space"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="config-section">
+      <div class="section-title">本 App：子表格明細欄位對應</div>
+      <div class="field-grid">
+        <div class="field-item">
+          <label id="lbl-subtable">子表格代碼</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fSubtable"></select></div>
+          </div>
+        </div>
+        <div class="field-item">
+          <label>商品名稱欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fProdName"></select></div>
+          </div>
+        </div>
+        <div class="field-item">
+          <label>商品料號欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fProdCode"></select></div>
+          </div>
+        </div>
+        <div class="field-item">
+          <label>條碼編號欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fBarcode"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-price">
+          <label id="lbl-price">價格欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fPrice"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-listPrice">
+          <label id="lbl-listPrice">定價欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fListPrice"></select></div>
+          </div>
+        </div>
+        <div class="field-item">
+          <label id="lbl-poQty">數量欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fPoQty"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-inQty">
+          <label>已入庫數量欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fInQty"></select></div>
+          </div>
+        </div>
+        <div class="field-item" id="wrap-wh">
+          <label id="lbl-wh">倉庫欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fWh"></select></div>
+          </div>
+          <div class="hint-text">實際倉庫名稱，用於查詢庫存比對。</div>
+        </div>
+        <div class="field-item" id="wrap-whTrigger">
+          <label>倉庫觸發欄位（Lookup 連動目標）</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fWhTrigger"></select></div>
+          </div>
+          <div class="hint-text hint-warn">⚠️ 若上方「倉庫欄位」是 Lookup
+            欄位（選取後自動帶出值），這裡請選它連動帶出的唯讀欄位（例如「倉庫編號」），否則選取倉庫時不會即時觸發庫存檢查。若倉庫欄位本身就是一般欄位，可留空。</div>
+        </div>
+        <div class="field-item" id="wrap-unit">
+          <label>單位欄位</label>
+          <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select"><select id="fUnit"></select></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="config-section">
+      <div class="section-title">功能開關</div>
+      <div class="toggle-list">
+        <input type="checkbox" id="isShipment" class="is-hidden">
+
+        <label class="toggle-item">
+          <input type="checkbox" id="enableInventorySync" checked>
+          <span>啟用庫存同步（存檔後自動加減庫存）</span>
+        </label>
+        <label class="toggle-item" id="wrap-toggle-suppGuard">
+          <input type="checkbox" id="enableSupplierGuard" checked>
+          <span>啟用廠商防呆（掃描條碼不符目前廠商時阻擋）</span>
+        </label>
+        <label class="toggle-item" id="wrap-toggle-autoSupp">
+          <input type="checkbox" id="enableAutoFillSupplier" checked>
+          <span>掃描後自動帶入廠商名稱（若表頭欄位為空）</span>
+        </label>
+      </div>
+    </section>
+
+    <div class="config-footer">
+      <span id="save-msg" class="save-msg"></span>
+      <button class="kintoneplugin-button-dialog-cancel" id="cancel-btn">取消</button>
+      <button class="kintoneplugin-button-dialog-ok" id="save-btn">儲存設定</button>
+    </div>
+  </div>
+</body>
+
+</html>

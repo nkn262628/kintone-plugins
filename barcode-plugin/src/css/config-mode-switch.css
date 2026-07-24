@@ -1,0 +1,118 @@
+/* ═══════════════════════════════════════════════
+   config-mode-switch.css
+   進貨/出貨/調撥模式切換卡片樣式，獨立拆出方便日後
+   調整模式選擇 UI 而不影響其他表單欄位樣式。
+═══════════════════════════════════════════════ */
+
+.mode-switch {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 560px) {
+  .mode-switch {
+    flex-direction: column;
+  }
+}
+
+.mode-card {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s;
+}
+
+.mode-card:hover {
+  border-color: #cbd5e1;
+  background: #fafafa;
+}
+
+.mode-check {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #45496a;
+  color: #fff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all .15s;
+}
+
+.mode-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 進貨：藍灰 */
+.mode-icon-in {
+  background: #eef1f7;
+  color: #45496a;
+}
+
+/* 出貨：珊瑚 */
+.mode-icon-out {
+  background: #fbedeb;
+  color: #a8483c;
+}
+
+/* 調撥：深藍 */
+.mode-icon-transfer {
+  background: #45496a;
+  color: #eef0f5;
+}
+
+.mode-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mode-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.mode-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.mode-card.active-in,
+.mode-card.active-out,
+.mode-card.active-transfer {
+  border-color: #45496a;
+  background: #fff;
+}
+
+.mode-card.active-in .mode-check,
+.mode-card.active-out .mode-check,
+.mode-card.active-transfer .mode-check {
+  opacity: 1;
+  transform: scale(1);
+}
