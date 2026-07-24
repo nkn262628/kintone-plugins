@@ -15,6 +15,7 @@
 
 * **`barcode-plugin-v2/`**：用於 ERP 系統的條碼掃描、進出庫核對與生成外掛。
 * **`auto-number-plugin/`**：根據特定規則自動產生單號的外掛。
+* **`ys-leave-manager/`**：LINE LIFF 打卡系統的請假管理外掛，含假別規則設定、時數計算、國定假日排除。
 
 ---
 

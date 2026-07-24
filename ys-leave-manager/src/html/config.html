@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Y's Cloud 請假管理 · 設定</title>
+  <link rel="stylesheet" href="../css/config.css" />
+</head>
+
+<body>
+
+  <div class="wrap">
+
+    <h1>Y's Cloud 請假管理 — 設定</h1>
+
+    <section class="block">
+      <h2>關聯 App</h2>
+      <div class="row">
+        <label>員工主檔 App ID <span class="req">*</span></label>
+        <input type="text" id="appEmployee" placeholder="例如 12" />
+      </div>
+      <div class="row">
+        <label>假別額度 App ID <span class="req">*</span></label>
+        <input type="text" id="appBalance" placeholder="例如 15" />
+      </div>
+      <div class="row">
+        <label>請假系統 App ID <span class="req">*</span></label>
+        <input type="text" id="appLeave" placeholder="例如 20" />
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>工時基準</h2>
+      <div class="row inline">
+        <div>
+          <label>上班時間</label>
+          <input type="time" id="workStart" value="09:00" />
+        </div>
+        <div>
+          <label>下班時間</label>
+          <input type="time" id="workEnd" value="18:00" />
+        </div>
+      </div>
+      <div class="row inline">
+        <div>
+          <label>午休開始</label>
+          <input type="time" id="lunchStart" value="12:00" />
+        </div>
+        <div>
+          <label>午休結束</label>
+          <input type="time" id="lunchEnd" value="13:00" />
+        </div>
+      </div>
+      <div class="row">
+        <label>每日工時（小時，自動換算）</label>
+        <input type="text" id="hoursPerDay" readonly />
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>假別規則</h2>
+      <p class="hint">換客戶只需要調整這張表，不用改任何程式碼。</p>
+      <div class="table-scroll">
+        <table id="leaveTypeTable">
+          <colgroup>
+            <col class="col-code" />
+            <col class="col-name" />
+            <col class="col-unit" />
+            <col class="col-method" />
+            <col class="col-fixed" />
+            <col class="col-reset" />
+            <col class="col-check" />
+            <col class="col-check" />
+            <col class="col-del" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>代碼</th>
+              <th>名稱</th>
+              <th>單位</th>
+              <th>額度計算方式</th>
+              <th>固定額度</th>
+              <th>重置週期</th>
+              <th>需附件</th>
+              <th>支薪</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="leaveTypeBody"></tbody>
+        </table>
+      </div>
+      <button type="button" id="btnAddRow" class="btn btn-ghost">+ 新增假別</button>
+    </section>
+
+    <section class="block">
+      <h2>國定假日資料來源</h2>
+      <div class="row">
+        <label>GAS Webhook URL <span class="req">*</span></label>
+        <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+      <div class="row">
+        <label>Client Secret <span class="req">*</span></label>
+        <input type="password" id="clientSecret" placeholder="與 GAS Script Properties 一致" />
+      </div>
+      <p class="hint warn">此欄位會存在 Kintone Plugin 設定內，僅系統管理者可見；請勿在其他地方明文外流。</p>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="btnCancel" class="btn btn-ghost">取消</button>
+      <button type="button" id="btnSave" class="btn btn-primary">儲存設定</button>
+    </div>
+
+  </div>
+
+  <script src="../js/config.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,35 @@
+{
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "name": {
+    "ja": "Y's Cloud 請假管理",
+    "en": "Y's Cloud Leave Manager",
+    "zh": "Y's Cloud 請假管理",
+    "zh-TW": "Y's Cloud 請假管理"
+  },
+  "description": {
+    "ja": "假別規則設定、時數計算、國定假日排除",
+    "en": "Leave rule configuration, hour calculation, holiday exclusion",
+    "zh": "假別規則設定、時數計算、國定假日排除",
+    "zh-TW": "假別規則設定、時數計算、國定假日排除"
+  },
+  "icon": "src/image/icon.png",
+  "desktop": {
+    "js": [
+      "src/js/desktop.js"
+    ],
+    "css": [
+      "src/css/desktop.css"
+    ]
+  },
+  "config": {
+    "html": "src/html/config.html",
+    "js": [
+      "src/js/config.js"
+    ],
+    "css": [
+      "src/css/config.css"
+    ]
+  }
+}

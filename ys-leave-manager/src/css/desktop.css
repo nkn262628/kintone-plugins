@@ -1,0 +1,10 @@
+/* src/css/desktop.css */
+.leave-preview-message {
+  background: #DCEEEC;
+  border: 1px solid #1F8F86;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #146058;
+  line-height: 1.6;
+}

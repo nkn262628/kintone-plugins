@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ERP 自動編號外掛 設定</title>
+  <title>自動編號外掛 設定</title>
 </head>
+
 <body>
   <div class="plugin-wrapper">
 
     <!-- Header -->
     <header class="plugin-header">
       <div class="header-main" id="headerToggle">
-        <div class="header-icon">⚙️</div>
+        <div class="header-icon" aria-hidden="true"></div>
         <div class="header-text">
-          <h1>ERP 自動編號外掛</h1>
+          <h1>自動編號外掛</h1>
           <p class="header-sub">設定此應用程式的自動編號規則</p>
         </div>
-        <span class="header-toggle open" id="headerArrow">▾</span>
+        <span class="header-toggle open" id="headerArrow">︾</span>
       </div>
       <div class="header-notice" id="headerNotice">
         <div class="notice-label">使用說明</div>
@@ -31,29 +33,25 @@
 
     <!-- 快速套用預設 -->
     <section class="card">
-      <h2 class="card-title">
-        <span class="card-icon">⚡</span> 快速套用預設
-      </h2>
-      <p class="card-desc">選擇對應的 ERP 模組，自動填入建議設定</p>
+      <h2 class="card-title">快速套用預設</h2>
+      <p class="card-desc">選擇對應的資料類型，自動填入建議設定</p>
       <div class="preset-grid">
-        <button class="preset-btn" data-prefix="WH" data-label="公司倉庫資料">🏭 WH<span>公司倉庫</span></button>
-        <button class="preset-btn" data-prefix="CU" data-label="客戶資料">👥 CU<span>客戶資料</span></button>
-        <button class="preset-btn" data-prefix="VD" data-label="廠商資料">🤝 VD<span>廠商資料</span></button>
-        <button class="preset-btn" data-prefix="IT" data-label="商品資料">📦 IT<span>商品資料</span></button>
-        <button class="preset-btn" data-prefix="ST" data-label="庫存總表">📊 ST<span>庫存總表</span></button>
-        <button class="preset-btn" data-prefix="PO" data-label="採購進貨單">🛒 PO<span>採購進貨</span></button>
-        <button class="preset-btn" data-prefix="SO" data-label="銷貨出貨單">🚚 SO<span>銷貨出貨</span></button>
-        <button class="preset-btn" data-prefix="AP" data-label="應付款項">💸 AP<span>應付款項</span></button>
-        <button class="preset-btn" data-prefix="AR" data-label="應收款項">💰 AR<span>應收款項</span></button>
-        <button class="preset-btn" data-prefix="TR" data-label="調撥單">🔄 TR<span>調撥單</span></button>
+        <button class="preset-btn" data-prefix="WH" data-label="倉庫資料">WH<span>倉庫資料</span></button>
+        <button class="preset-btn" data-prefix="CU" data-label="客戶資料">CU<span>客戶資料</span></button>
+        <button class="preset-btn" data-prefix="VD" data-label="廠商資料">VD<span>廠商資料</span></button>
+        <button class="preset-btn" data-prefix="IT" data-label="商品資料">IT<span>商品資料</span></button>
+        <button class="preset-btn" data-prefix="ST" data-label="庫存總表">ST<span>庫存總表</span></button>
+        <button class="preset-btn" data-prefix="PO" data-label="採購進貨單">PO<span>採購進貨</span></button>
+        <button class="preset-btn" data-prefix="SO" data-label="銷貨出貨單">SO<span>銷貨出貨</span></button>
+        <button class="preset-btn" data-prefix="AP" data-label="應付款項">AP<span>應付款項</span></button>
+        <button class="preset-btn" data-prefix="AR" data-label="應收款項">AR<span>應收款項</span></button>
+        <button class="preset-btn" data-prefix="TR" data-label="調撥單">TR<span>調撥單</span></button>
       </div>
     </section>
 
     <!-- 基本設定 -->
     <section class="card">
-      <h2 class="card-title">
-        <span class="card-icon">📝</span> 基本設定
-      </h2>
+      <h2 class="card-title">基本設定</h2>
 
       <div class="form-group">
         <label for="fieldCode">編號欄位代碼 <span class="required">*</span></label>
@@ -73,9 +71,7 @@
 
     <!-- 進階設定 -->
     <section class="card">
-      <h2 class="card-title">
-        <span class="card-icon">🔧</span> 進階設定
-      </h2>
+      <h2 class="card-title">進階設定</h2>
 
       <div class="form-row">
         <div class="form-group half">
@@ -91,21 +87,21 @@
           <select id="resetMode">
             <option value="daily">每日重置</option>
             <option value="monthly">每月重置</option>
-            <option value="never">永不重置（全域累計）</option>
+            <option value="never">永不重置（序號一直累加，不歸零）</option>
           </select>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="conditionalField">依條件分段編號（選填）</label>
-        <input type="text" id="conditionalField" placeholder="例如：單位類別（留空則不分段）" />
-        <p class="hint">填入欄位代碼後，系統會依該欄位值決定前綴（需搭配下方條件對應表）</p>
+        <label for="conditionalField">依欄位值切換前綴（選填）</label>
+        <input type="text" id="conditionalField" placeholder="例如：單位類別（留空則所有記錄用同一組前綴）" />
+        <p class="hint">填入欄位代碼後，可依該欄位當下的值，換用不同前綴</p>
       </div>
 
       <!-- 條件對應表 -->
       <div id="conditionSection" class="hidden">
-        <div class="sub-title">條件前綴對應表</div>
-        <p class="hint">當「依條件分段」欄位為指定值時，覆蓋使用對應前綴</p>
+        <div class="sub-title">前綴對照表</div>
+        <p class="hint">當上方欄位符合下列的值時，改用對應的前綴</p>
         <div id="conditionRows"></div>
         <button type="button" class="btn-add-row" id="addConditionRow">＋ 新增條件</button>
       </div>
@@ -113,9 +109,7 @@
 
     <!-- 預覽 -->
     <section class="card preview-card">
-      <h2 class="card-title">
-        <span class="card-icon">👁</span> 編號格式預覽
-      </h2>
+      <h2 class="card-title">編號格式預覽</h2>
       <div class="format-preview" id="formatPreview">
         <span class="format-part prefix-part" id="pvPrefix">PO</span>
         <span class="format-sep">-</span>
@@ -139,4 +133,5 @@
   </div>
 
 </body>
+
 </html>

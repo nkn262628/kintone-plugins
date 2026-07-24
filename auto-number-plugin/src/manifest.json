@@ -3,16 +3,16 @@
   "version": 1,
   "type": "APP",
   "name": {
-    "ja": "ERP 自動編號外掛",
-    "en": "ERP Auto Numbering Plugin",
-    "zh": "ERP 自動編號外掛",
-    "zh-TW": "ERP 自動編號外掛"
+    "ja": "自動採番プラグイン",
+    "en": "Auto Numbering Plugin",
+    "zh": "自動編號外掛",
+    "zh-TW": "自動編號外掛"
   },
   "description": {
-    "ja": "ERP各アプリに自動採番機能を提供します",
-    "en": "Provides auto-numbering for ERP apps with date-based format",
-    "zh": "為 ERP 各應用程式提供含日期的自動編號功能",
-    "zh-TW": "為 ERP 各應用程式提供含日期的自動編號功能"
+    "ja": "アプリに日付ベースの自動採番機能を提供します",
+    "en": "Provides auto-numbering for apps with date-based format",
+    "zh": "為應用程式提供含日期的自動編號功能",
+    "zh-TW": "為應用程式提供含日期的自動編號功能"
   },
   "icon": "image/icon.png",
   "config": {
