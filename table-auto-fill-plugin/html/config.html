@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>表格自動填入外掛設定</title>
+</head>
+
+<body>
+    <div id="taf-config-root" class="taf-root">
+        <h2 class="taf-title">表格自動填入設定</h2>
+        <p class="taf-desc">
+            請選擇要設定的表格,並指定新增列時要自動填入的欄位,以及值的來源(複製表頭欄位,或固定值)。
+        </p>
+
+        <div id="taf-tables-container" class="taf-tables-container"></div>
+        <button type="button" id="taf-add-table-btn" class="taf-icon-btn taf-icon-btn-add" title="新增表格"
+            aria-label="新增表格">＋</button>
+
+
+        <div class="taf-footer">
+            <button type="button" id="taf-save-btn" class="taf-btn taf-btn-save">儲存</button>
+            <span id="taf-save-msg" class="taf-save-msg"></span>
+        </div>
+    </div>
+
+    <template id="taf-table-group-template">
+        <div class="taf-table-group" data-table-group-index="">
+            <div class="taf-table-group-header">
+                <label class="taf-label">對象表格</label>
+                <select class="taf-table-select"></select>
+                <div class="taf-header-actions">
+                    <button type="button" class="taf-icon-btn taf-icon-btn-add taf-inline-add-table-btn" title="新增表格"
+                        aria-label="新增表格">＋</button>
+                    <button type="button" class="taf-icon-btn taf-icon-btn-delete taf-delete-table-btn" title="刪除此表格"
+                        aria-label="刪除此表格">－</button>
+                </div>
+            </div>
+
+            <div class="taf-rules-section">
+                <div class="taf-section-divider"><span>規則</span></div>
+                <div class="taf-rules-container"></div>
+                <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-rule-btn" title="新增對應規則"
+                    aria-label="新增對應規則">＋</button>
+            </div>
+
+            <div class="taf-row-presets-section">
+                <div class="taf-section-divider">
+                    <span>列預設值</span>
+                    <span class="taf-info-icon" tabindex="0"
+                        data-tooltip="規則：套用於所有空白列；列預設值：套用於指定空白列">?</span>
+                    <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-row-preset-btn" title="新增列預設"
+                        aria-label="新增列預設">＋</button>
+                </div>
+                <div class="taf-row-presets-container"></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="taf-rule-template">
+        <div class="taf-rule-card" data-rule-index="">
+            <div class="taf-rule-row taf-source-type-row">
+                <label class="taf-rule-label">值的來源</label>
+                <div class="taf-segmented">
+                    <label class="taf-radio-label">
+                        <input type="radio" name="" class="taf-source-type" value="header" checked>
+                        <span>複製表頭欄位</span>
+                    </label>
+                    <label class="taf-radio-label">
+                        <input type="radio" name="" class="taf-source-type" value="static">
+                        <span>固定值</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="taf-rule-row taf-source-header-row">
+                <label class="taf-rule-label" style="display: flex; align-items: center; gap: 4px;">
+                    複製來源(表頭)
+                    <span class="taf-info-icon" tabindex="0" data-tooltip="支援：單行文字、數值、日期時間、單選框、複選框、下拉選單、連結。">?</span>
+                </label>
+                <select class="taf-source-header-select"></select>
+                <span class="taf-type-warning" style="display:none;">欄位類型不相符</span>
+            </div>
+
+            <div class="taf-rule-row taf-source-static-row" style="display:none;">
+                <label class="taf-rule-label">固定值</label>
+                <input type="text" class="taf-source-static-input" placeholder="例如:待處理">
+                <select class="taf-source-static-select" style="display:none;"></select>
+                <div class="taf-source-static-multiselect taf-ms-dropdown" style="display:none;">
+                    <button type="button" class="taf-ms-trigger">請選擇</button>
+                    <div class="taf-ms-panel"></div>
+                </div>
+            </div>
+
+            <div class="taf-flow-arrow" aria-hidden="true"></div>
+
+            <div class="taf-rule-row taf-target-row">
+                <label class="taf-rule-label">表格內欄位</label>
+                <select class="taf-target-field-select"></select>
+                <span class="taf-duplicate-warning taf-type-warning" style="display:none; margin-left: 8px;">目標欄位重複</span>
+            </div>
+
+            <div class="taf-rule-row taf-only-empty-row">
+                <label class="taf-checkbox-label">
+                    <input type="checkbox" class="taf-only-if-empty" checked>
+                    若已有值則不覆蓋
+                </label>
+            </div>
+
+            <div class="taf-rule-actions">
+                <button type="button" class="taf-icon-btn taf-icon-btn-add taf-inline-add-rule-btn" title="新增對應規則"
+                    aria-label="新增對應規則">＋</button>
+                <button type="button" class="taf-icon-btn taf-icon-btn-delete taf-delete-rule-btn" title="刪除此對應規則"
+                    aria-label="刪除此對應規則">－</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="taf-row-preset-template">
+        <div class="taf-row-preset-card" data-row-preset-index="">
+            <div class="taf-row-preset-header">
+                <span class="taf-row-preset-label"></span>
+                <div class="taf-header-actions">
+                    <button type="button" class="taf-icon-btn taf-icon-btn-add taf-inline-add-row-preset-btn"
+                        title="新增列預設" aria-label="新增列預設">＋</button>
+                    <button type="button" class="taf-icon-btn taf-icon-btn-delete taf-delete-row-preset-btn"
+                        title="刪除此列預設" aria-label="刪除此列預設">－</button>
+                </div>
+            </div>
+            <div class="taf-field-value-container"></div>
+            <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-field-value-btn" title="新增欄位值"
+                aria-label="新增欄位值">＋</button>
+        </div>
+    </template>
+
+    <template id="taf-field-value-template">
+        <div class="taf-field-value-row">
+            <select class="taf-fv-field-select"></select>
+            <input type="text" class="taf-fv-static-input" placeholder="值">
+            <select class="taf-fv-static-select" style="display:none;"></select>
+            <div class="taf-fv-static-multiselect taf-ms-dropdown" style="display:none;">
+                <button type="button" class="taf-ms-trigger">請選擇</button>
+                <div class="taf-ms-panel"></div>
+            </div>
+            <div class="taf-fv-actions">
+                <button type="button" class="taf-icon-btn taf-icon-btn-add taf-inline-add-field-value-btn" title="新增欄位值"
+                    aria-label="新增欄位值">＋</button>
+                <button type="button" class="taf-icon-btn taf-icon-btn-delete taf-delete-field-value-btn" title="刪除此欄位值"
+                    aria-label="刪除此欄位值">－</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://js.cybozu.com/kintone-plugin/loader.js"></script>
+    <script src="../js/config.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,598 @@
+:root {
+  --taf-navy: #45496a;
+  --taf-blue-gray: #7d8bae;
+  --taf-coral: #e5857b;
+  --taf-coral-bg: #fdf1ef;
+  --taf-success: #5c8b6f;
+  --taf-bg: #eef0f6;
+  --taf-surface: #ffffff;
+  --taf-surface-sunken: #f6f7fb;
+  --taf-border: #dbdfec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.taf-root {
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
+  color: var(--taf-navy);
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 24px 40px;
+  background: var(--taf-bg);
+}
+
+.taf-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 6px;
+  color: var(--taf-navy);
+}
+
+.taf-desc {
+  font-size: 13px;
+  color: var(--taf-blue-gray);
+  line-height: 1.7;
+  margin: 0 0 22px;
+}
+
+/* ---- Table group (outer) card ---- */
+
+.taf-tables-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.taf-table-group {
+  background: var(--taf-surface);
+  border: 1px solid var(--taf-border);
+  border-radius: 12px;
+  padding: 18px 20px 20px;
+  box-shadow: 0 1px 2px rgba(69, 73, 106, 0.06);
+}
+
+.taf-table-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--taf-border);
+}
+
+.taf-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.taf-label,
+.taf-rule-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--taf-navy);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.taf-select,
+.taf-table-select,
+.taf-target-field-select,
+.taf-source-header-select,
+.taf-source-static-input,
+.taf-source-static-select {
+  border: 1px solid var(--taf-border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--taf-navy);
+  background: #fff;
+  min-width: 220px;
+  transition: border-color 0.15s ease;
+}
+
+.taf-select:focus-visible,
+.taf-table-select:focus-visible,
+.taf-target-field-select:focus-visible,
+.taf-source-header-select:focus-visible,
+.taf-source-static-input:focus-visible,
+.taf-source-static-select:focus-visible {
+  outline: none;
+  border-color: var(--taf-navy);
+}
+
+/* ---- Rule cards (nested, "sunken" surface) ---- */
+
+.taf-rules-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.taf-rule-card {
+  border: 1px solid var(--taf-border);
+  border-radius: 10px;
+  padding: 16px 92px 16px 18px;
+  background: var(--taf-surface-sunken);
+  position: relative;
+}
+
+.taf-rules-section {
+  padding: 18px 20px 20px;
+  margin-top: 14px;
+  border-radius: 10px;
+  background: var(--taf-surface);
+  border: 1px solid var(--taf-border);
+}
+
+/* 列預設值整區用底色圈起來，跟上面的規則區明確分開 */
+.taf-row-presets-section {
+  background: #eef1f8;
+  border: 1px dashed var(--taf-border);
+  border-radius: 10px;
+  padding: 18px 20px 20px;
+  margin-top: 14px;
+}
+
+/* 說明泡泡：hover / focus 就能看到兩區差異，不用一直印在畫面上一大串字 */
+.taf-info-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--taf-blue-gray);
+  color: var(--taf-blue-gray);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.taf-info-icon:hover,
+.taf-info-icon:focus-visible {
+  background: var(--taf-blue-gray);
+  color: #fff;
+  outline: none;
+}
+
+/* 這是 tooltip 的黑色文字框 */
+.taf-info-icon::after {
+ content: attr(data-tooltip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px; /* 從 220px 稍微加寬，避免大字體頻繁折行 */
+    background-color: var(--taf-navy);
+    color: #ffffff;
+    padding: 10px 14px; /* 稍微增加內距，多點呼吸空間 */
+    border-radius: 6px;
+    font-size: 14px; /* 🔍 字體放大：從 12px 改為 14px */
+    font-weight: normal;
+    line-height: 1.6; /* 增加一點行高，提升閱讀性 */
+    white-space: pre-wrap; /* 允許解析 &#10; 的斷行指令 */
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(69, 73, 106, 0.2);
+    /* 預設隱藏與動畫設定 */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* 這是 tooltip 下方的倒三角形 */
+.taf-info-icon::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--taf-navy) transparent transparent transparent;
+  /* 使用定義好的深藍色變數 */
+  /* 預設隱藏與動畫設定 */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* 當滑鼠 Hover 或鍵盤 Focus 時，顯示 tooltip 並給予一點向上浮動的動態感 */
+.taf-info-icon:hover::after,
+.taf-info-icon:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -4px);
+  /* 向上浮動 */
+}
+
+.taf-info-icon:hover::before,
+.taf-info-icon:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -4px);
+  /* 向上浮動 */
+}
+
+.taf-add-row-preset-btn {
+  margin-top: 2px;
+}
+
+.taf-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--taf-blue-gray);
+}
+
+.taf-section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--taf-border);
+  margin: 0 4px;
+}
+
+.taf-section-divider .taf-add-row-preset-btn {
+  margin-left: 0;
+}
+
+.taf-row-preset-card {
+  border: 1px dashed var(--taf-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fff;
+  margin-bottom: 10px;
+}
+
+.taf-row-preset-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.taf-row-preset-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--taf-navy);
+}
+
+.taf-field-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.taf-fv-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ---- 多選下拉觸發鈕（外觀比照 select）---- */
+.taf-ms-dropdown {
+  position: relative;
+  min-width: 220px;
+}
+
+.taf-ms-trigger {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--taf-border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--taf-navy);
+  background: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.taf-ms-trigger:hover {
+  border-color: var(--taf-blue-gray);
+}
+
+.taf-ms-trigger-open {
+  border-color: var(--taf-navy);
+}
+
+.taf-ms-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  display: none;
+  min-width: 220px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--taf-border);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 4px 14px rgba(69, 73, 106, 0.16);
+}
+
+.taf-ms-panel-open {
+  display: block;
+}
+
+.taf-ms-panel label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 4px;
+  font-size: 13px;
+  color: var(--taf-navy);
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.taf-ms-panel label:hover {
+  background: var(--taf-surface-sunken);
+}
+
+.taf-fv-field-select,
+.taf-fv-static-input,
+.taf-fv-static-select {
+  border: 1px solid var(--taf-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--taf-navy);
+  background: #fff;
+  min-width: 160px;
+}
+
+.taf-rule-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.taf-rule-row:last-of-type {
+  margin-bottom: 12px;
+}
+
+/* Data-flow arrow: signature element linking source -> target */
+.taf-flow-arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 22px;
+  margin: 2px 0 10px;
+  color: var(--taf-blue-gray);
+}
+
+.taf-flow-arrow::before {
+  content: "↓";
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* ---- Segmented control (replaces bare radio buttons) ---- */
+
+.taf-segmented {
+  display: inline-flex;
+  border-radius: 8px;
+  border: 1px solid var(--taf-border);
+  overflow: hidden;
+  background: #fff;
+}
+
+.taf-radio-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.taf-radio-label:not(:last-child) {
+  border-right: 1px solid var(--taf-border);
+}
+
+.taf-radio-label input[type="radio"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.taf-radio-label span {
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--taf-navy);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.taf-radio-label input:checked+span {
+  background: var(--taf-navy);
+  color: #fff;
+}
+
+.taf-radio-label input:focus-visible+span {
+  outline: 2px solid var(--taf-navy);
+  outline-offset: 2px;
+}
+
+/* ---- Checkbox row ---- */
+
+.taf-checkbox-label {
+  font-size: 13px;
+  color: var(--taf-navy);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* ---- Buttons ---- */
+
+.taf-btn {
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.taf-btn-add {
+  background: var(--taf-blue-gray);
+  color: #fff;
+  border: 1px solid var(--taf-blue-gray);
+}
+
+.taf-btn-add:hover {
+  background: var(--taf-navy);
+  border-color: var(--taf-navy);
+}
+
+.taf-btn-save {
+  background: var(--taf-navy);
+  color: #fff;
+  border: 1px solid var(--taf-navy);
+  padding: 9px 22px;
+}
+
+.taf-btn-save:hover {
+  background: #383c58;
+}
+
+.taf-btn-delete {
+  background: transparent;
+  color: var(--taf-coral);
+  border: 1px solid var(--taf-coral);
+}
+
+.taf-btn-delete:hover {
+  background: var(--taf-coral-bg);
+}
+
+.taf-btn:focus-visible {
+  outline: 2px solid var(--taf-navy);
+  outline-offset: 2px;
+}
+
+.taf-icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.taf-icon-btn-add {
+  background: #fff;
+  color: var(--taf-blue-gray);
+  border: 1px solid var(--taf-blue-gray);
+}
+
+.taf-icon-btn-add:hover {
+  background: var(--taf-blue-gray);
+  color: #fff;
+}
+
+.taf-icon-btn-delete {
+  background: #fff;
+  color: var(--taf-coral);
+  border: 1px solid var(--taf-coral);
+}
+
+.taf-icon-btn-delete:hover {
+  background: var(--taf-coral);
+  color: #fff;
+}
+
+.taf-icon-btn:focus-visible {
+  outline: 2px solid var(--taf-navy);
+  outline-offset: 2px;
+}
+
+.taf-rule-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+/* 表格內只要還有規則卡片，就隱藏「＋新增對應規則」這個群組層級按鈕，
+   避免跟卡片自己的 ＋ 重複；只有清單是空的時候才顯示，當作新增第一筆的入口 */
+.taf-rules-container:not(:empty)+.taf-add-rule-btn {
+  display: none;
+}
+
+/* 表格清單非空 -> 隱藏最外層「新增表格」 */
+#taf-tables-container:not(:empty)+#taf-add-table-btn {
+  display: none;
+}
+
+/* 列預設清單非空 -> 隱藏「列預設值」標題列上那顆＋ */
+.taf-row-presets-section:has(.taf-row-presets-container:not(:empty)) .taf-add-row-preset-btn {
+  display: none;
+}
+
+/* 欄位值清單非空 -> 隱藏卡片底部那顆＋ */
+.taf-field-value-container:not(:empty)+.taf-add-field-value-btn {
+  display: none;
+}
+
+
+/* ---- Type warning ---- */
+
+.taf-type-warning {
+  font-size: 12px;
+  color: var(--taf-coral);
+}
+
+/* ---- Footer / save message ---- */
+
+.taf-footer {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.taf-save-msg {
+  font-size: 13px;
+  color: var(--taf-success);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "name": {
+    "ja": "テーブル自動入力プラグイン",
+    "zh": "表格自動填入外掛",
+    "en": "Table Auto-Fill Plugin",
+    "zh-TW": "表格自動填入外掛"
+  },
+  "description": {
+    "ja": "テーブルに行を追加した際、あらかじめ設定したルールに従って、ヘッダーフィールドの値または固定値を自動的に入力します。",
+    "zh": "在表格新增列時,依照預先設定的規則,自動填入表頭欄位的值或固定值。",
+    "en": "Automatically fills table rows with values copied from header fields or fixed values when a new row is added.",
+    "zh-TW": "在表格新增列時,依照預先設定的規則,自動填入表頭欄位的值或固定值。"
+  },
+  "icon": "image/icon.png",
+  "config": {
+    "html": "html/config.html",
+    "js": [
+      "js/config.js"
+    ],
+    "css": [
+      "css/config.css"
+    ]
+  },
+  "desktop": {
+    "js": [
+      "js/desktop.js"
+    ],
+    "css": []
+  },
+  "mobile": {
+    "js": [
+      "js/desktop.js"
+    ],
+    "css": []
+  }
+}
