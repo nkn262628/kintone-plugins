@@ -10,13 +10,24 @@
     <div id="taf-config-root" class="taf-root">
         <h2 class="taf-title">表格自動填入設定</h2>
         <p class="taf-desc">
-            請選擇要設定的表格,並指定新增列時要自動填入的欄位,以及值的來源(複製表頭欄位,或固定值)。
+            支援在相同環境中，跨 App 欄位自動帶入資料。
         </p>
 
+        <div class="taf-section-block taf-section-emphasis">
+            <div class="taf-section-divider taf-section-divider-emphasis">
+                <span>跨 App 查找（自動填入表頭欄位）</span>
+                <span class="taf-info-icon" tabindex="0"
+                    data-tooltip="當您輸入/選擇某個表頭欄位的值時,自動去同空間的另一個 App 查一筆資料,並把查到的欄位值填入本 App 的其他表頭欄位。&#10;查無符合資料時,會清空目標欄位並提示;查到多筆時,會跳出視窗讓使用者自己挑一筆。">?</span>
+            </div>
+            <div id="taf-header-lookups-container" class="taf-crossapp-container"></div>
+            <button type="button" id="taf-add-header-lookup-btn" class="taf-icon-btn taf-icon-btn-add"
+                title="新增跨App查找" aria-label="新增跨App查找">＋</button>
+        </div>
+
+        <div class="taf-section-divider taf-tables-heading"><span>表格設定</span></div>
         <div id="taf-tables-container" class="taf-tables-container"></div>
         <button type="button" id="taf-add-table-btn" class="taf-icon-btn taf-icon-btn-add" title="新增表格"
             aria-label="新增表格">＋</button>
-
 
         <div class="taf-footer">
             <button type="button" id="taf-save-btn" class="taf-btn taf-btn-save">儲存</button>
@@ -37,23 +48,37 @@
                 </div>
             </div>
 
-            <div class="taf-rules-section">
-                <div class="taf-section-divider"><span>規則</span></div>
-                <div class="taf-rules-container"></div>
-                <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-rule-btn" title="新增對應規則"
-                    aria-label="新增對應規則">＋</button>
+            <div class="taf-crossapp-expand-section">
+                <div class="taf-section-divider taf-section-divider-emphasis">
+                    <span>跨 App 展開列（按鈕觸發）</span>
+                    <span class="taf-info-icon" tabindex="0"
+                        data-tooltip="設定後,填寫記錄時子表格上方會出現一顆按鈕。點擊後會去目標 App 查詢符合條件的多筆記錄,每一筆會變成子表格的一列。&#10;此動作會改變列數,故不自動觸發,需使用者手動點按鈕。">?</span>
+                    <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-crossapp-expand-btn"
+                        title="新增跨App展開設定" aria-label="新增跨App展開設定">＋</button>
+                </div>
+                <div class="taf-crossapp-expand-container"></div>
             </div>
 
-            <div class="taf-row-presets-section">
-                <div class="taf-section-divider">
-                    <span>列預設值</span>
-                    <span class="taf-info-icon" tabindex="0"
-                        data-tooltip="規則：套用於所有空白列；列預設值：套用於指定空白列">?</span>
-                    <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-row-preset-btn" title="新增列預設"
-                        aria-label="新增列預設">＋</button>
+            <details class="taf-legacy-section">
+                <summary class="taf-legacy-summary">支援同 App 內複製或固定值設定</summary>
+                <div class="taf-rules-section">
+                    <div class="taf-section-divider"><span>規則</span></div>
+                    <div class="taf-rules-container"></div>
+                    <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-rule-btn" title="新增對應規則"
+                        aria-label="新增對應規則">＋</button>
                 </div>
-                <div class="taf-row-presets-container"></div>
-            </div>
+
+                <div class="taf-row-presets-section">
+                    <div class="taf-section-divider">
+                        <span>列預設值</span>
+                        <span class="taf-info-icon" tabindex="0"
+                            data-tooltip="規則：套用於所有空白列；列預設值：套用於指定空白列">?</span>
+                        <button type="button" class="taf-icon-btn taf-icon-btn-add taf-add-row-preset-btn" title="新增列預設"
+                            aria-label="新增列預設">＋</button>
+                    </div>
+                    <div class="taf-row-presets-container"></div>
+                </div>
+            </details>
         </div>
     </template>
 
@@ -148,6 +173,64 @@
                 <button type="button" class="taf-icon-btn taf-icon-btn-delete taf-delete-field-value-btn" title="刪除此欄位值"
                     aria-label="刪除此欄位值">－</button>
             </div>
+        </div>
+    </template>
+
+    <template id="taf-crossapp-card-template">
+        <div class="taf-crossapp-card">
+            <div class="taf-crossapp-card-header">
+                <div class="taf-crossapp-app-row">
+                    <label class="taf-rule-label">目標 App</label>
+                    <select class="taf-crossapp-app-select taf-select"></select>
+                    <span class="taf-crossapp-app-manual-wrap">
+                        或輸入 App ID:
+                        <input type="text" class="taf-crossapp-app-manual taf-select" placeholder="App ID"
+                            style="width:80px;min-width:0;">
+                    </span>
+                </div>
+                <button type="button" class="taf-icon-btn taf-icon-btn-delete taf-crossapp-delete-btn" title="刪除此設定"
+                    aria-label="刪除此設定">－</button>
+            </div>
+
+            <div class="taf-rule-row">
+                <label class="taf-rule-label">目標App欄位</label>
+                <select class="taf-crossapp-match-target-select taf-select"></select>
+            </div>
+            <div class="taf-rule-row">
+                <label class="taf-rule-label" style="display:flex;align-items:center;gap:4px;">
+                    本App表頭
+                    <span class="taf-info-icon" tabindex="0"
+                        data-tooltip="這個表頭欄位的值變動時,會自動去目標App查詢「比對條件」等於此值的記錄。">?</span>
+                </label>
+                <select class="taf-crossapp-match-source-select taf-select"></select>
+            </div>
+
+            <div class="taf-rule-row taf-crossapp-buttonlabel-row" style="display:none;">
+                <label class="taf-rule-label">按鈕文字</label>
+                <input type="text" class="taf-crossapp-button-label taf-select" placeholder="例如:帶入明細"
+                    style="min-width:160px;">
+            </div>
+
+            <div class="taf-flow-arrow" aria-hidden="true"></div>
+
+            <div class="taf-crossapp-fieldmap-section">
+                <label class="taf-rule-label" style="margin-bottom:8px;display:block;">
+                    欄位對應(目標App欄位 → 填入欄位)
+                </label>
+                <div class="taf-crossapp-fieldmap-container"></div>
+                <button type="button" class="taf-icon-btn taf-icon-btn-add taf-crossapp-add-fieldmap-btn"
+                    title="新增欄位對應" aria-label="新增欄位對應">＋</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="taf-crossapp-fieldmap-template">
+        <div class="taf-crossapp-fieldmap-row">
+            <select class="taf-crossapp-fm-source-select taf-select"></select>
+            <span aria-hidden="true">→</span>
+            <select class="taf-crossapp-fm-target-select taf-select"></select>
+            <button type="button" class="taf-icon-btn taf-icon-btn-delete taf-crossapp-fm-delete-btn" title="刪除此對應"
+                aria-label="刪除此對應">－</button>
         </div>
     </template>
 

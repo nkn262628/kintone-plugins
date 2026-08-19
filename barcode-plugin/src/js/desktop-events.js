@@ -35,10 +35,11 @@
     const record = event.record;
     SP.state.currentCustomerType = record[SP.F_CUSTOMER_TYPE]?.value || '';
 
-    if (record[SP.F_PO_NUM]) {
-      record[SP.F_PO_NUM].disabled = true;
-      if (event.type.includes('.create.show')) record[SP.F_PO_NUM].value = '';
-    }
+    // 🔧 [2026-08 調整] 不再強制鎖定單號欄位，改由客戶自動編號外掛或手動輸入。
+    // if (record[SP.F_PO_NUM]) {
+    //   record[SP.F_PO_NUM].disabled = true;
+    //   if (event.type.includes('.create.show')) record[SP.F_PO_NUM].value = '';
+    // }
 
     if (SP.OPT_IS_SHIPMENT) {
       SP.state.originalSalesData = (event.type.includes('.edit.show'))

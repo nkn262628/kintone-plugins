@@ -111,6 +111,12 @@
     var rowPresetCounter = 0;
     var fieldValueCounter = 0;
 
+    // ---- Cross-App state ----
+    var currentAppSpaceId = null;      // 目前App所在的Space ID(沒有的話是null)
+    var spaceApps = [];                // 同Space下的其他App清單 [{appId, name}]
+    var spaceAppsFetched = false;
+    var targetAppFieldsCache = {};     // targetAppId -> fields properties(避免重複打API)
+
     function renumberRowPresets(container) {
         container.querySelectorAll('.taf-row-preset-card').forEach(function (card, i) {
             card.querySelector('.taf-row-preset-label').textContent = '第 ' + (i + 1) + ' 列';
@@ -211,7 +217,11 @@
         tableGroupTemplate: document.getElementById('taf-table-group-template'),
         ruleTemplate: document.getElementById('taf-rule-template'),
         rowPresetTemplate: document.getElementById('taf-row-preset-template'),
-        fieldValueTemplate: document.getElementById('taf-field-value-template')
+        fieldValueTemplate: document.getElementById('taf-field-value-template'),
+        headerLookupsContainer: document.getElementById('taf-header-lookups-container'),
+        addHeaderLookupBtn: document.getElementById('taf-add-header-lookup-btn'),
+        crossAppCardTemplate: document.getElementById('taf-crossapp-card-template'),
+        crossAppFieldMapTemplate: document.getElementById('taf-crossapp-fieldmap-template')
     };
 
     // ---- 1. Fetch app fields, then init UI ----
@@ -238,12 +248,248 @@
             });
 
             window.__taf_subtableCodes = subtableCodes; // used by table-group creation
-            loadExistingConfig(subtableCodes);
+
+            // 欄位抓完後，接著抓同一個 Space 底下有哪些其他 App，供跨App查找/展開的下拉選單使用。
+            // 這一步失敗不影響既有功能，所以失敗時只記 log，讓使用者用「手動輸入 App ID」繼續設定。
+            fetchSpaceAppsIfNeeded(function () {
+                loadExistingConfig(subtableCodes);
+            });
         })
         .catch(function (err) {
             console.error('table-auto-fill-plugin: failed to fetch app fields', err);
             els.saveMsg.textContent = '欄位資訊取得失敗,請重新整理畫面。';
         });
+
+    // ---- Cross-App: 抓目前App所在Space的其他App清單 ----
+    function fetchSpaceAppsIfNeeded(callback) {
+        if (spaceAppsFetched) { callback(); return; }
+        kintone.api(kintone.api.url('/k/v1/app', true), 'GET', { id: appId })
+            .then(function (resp) {
+                currentAppSpaceId = resp.spaceId || null;
+                if (!currentAppSpaceId) {
+                    spaceAppsFetched = true;
+                    callback();
+                    return;
+                }
+                return kintone.api(kintone.api.url('/k/v1/apps', true), 'GET', { spaceIds: [currentAppSpaceId] })
+                    .then(function (listResp) {
+                        spaceApps = (listResp.apps || [])
+                            .filter(function (a) { return String(a.appId) !== String(appId); })
+                            .map(function (a) { return { appId: a.appId, name: a.name }; });
+                        spaceAppsFetched = true;
+                        callback();
+                    });
+            })
+            .catch(function (err) {
+                console.error('table-auto-fill-plugin: failed to list apps in space', err);
+                spaceAppsFetched = true;
+                callback();
+            });
+    }
+
+    // 抓目標App的欄位清單(非preview版，因為操作者對目標App通常只有一般權限，不一定是App管理者)
+    function fetchTargetAppFields(targetAppId, callback) {
+        if (!targetAppId) { callback(null); return; }
+        if (targetAppFieldsCache[targetAppId]) { callback(targetAppFieldsCache[targetAppId]); return; }
+        kintone.api(kintone.api.url('/k/v1/app/form/fields', true), 'GET', { app: targetAppId })
+            .then(function (resp) {
+                targetAppFieldsCache[targetAppId] = resp.properties;
+                callback(resp.properties);
+            })
+            .catch(function (err) {
+                console.error('table-auto-fill-plugin: failed to fetch target app fields', err);
+                callback(null);
+            });
+    }
+
+    function populateAppSelect(selectEl) {
+        selectEl.innerHTML = '<option value="">請選擇...</option>';
+        spaceApps.forEach(function (a) {
+            var opt = document.createElement('option');
+            opt.value = a.appId;
+            opt.textContent = a.name + '（ID:' + a.appId + '）';
+            selectEl.appendChild(opt);
+        });
+    }
+
+    // 泛用的「欄位下拉選單」填入，用於目標App欄位(來源) — 排除子表格/群組，因為這裡只處理單一值欄位
+    function populateFieldSelect(selectEl, fields, savedValue) {
+        if (!fields) return;
+        var prevValue = savedValue || selectEl.value;
+        selectEl.innerHTML = '';
+        Object.keys(fields).forEach(function (code) {
+            var f = fields[code];
+            if (f.type === 'SUBTABLE' || f.type === 'GROUP') return;
+            var opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = f.label + '（' + code + '）';
+            selectEl.appendChild(opt);
+        });
+        if (prevValue && optionExists(selectEl, prevValue)) selectEl.value = prevValue;
+    }
+
+    // 本App表頭欄位下拉選單，用於「比對值來源」
+    function populateHeaderFieldSelect(selectEl, savedValue) {
+        selectEl.innerHTML = '';
+        headerFieldCodes.forEach(function (code) {
+            var f = allFields[code];
+            var opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = f.label + '（' + code + '）';
+            selectEl.appendChild(opt);
+        });
+        if (savedValue && optionExists(selectEl, savedValue)) selectEl.value = savedValue;
+    }
+
+    // 建立一張跨App卡片。kind: 'header'(填表頭) 或 'expand'(展開子表格列)
+    // tableCodeForExpand 只有 kind==='expand' 時才需要，決定「填入欄位」要列哪個子表格的欄位
+    function createCrossAppCard(kind, container, tableCodeForExpand, savedCfg) {
+        var frag = els.crossAppCardTemplate.content.cloneNode(true);
+        var card = frag.querySelector('.taf-crossapp-card');
+
+        var appSelect = card.querySelector('.taf-crossapp-app-select');
+        var appManualInput = card.querySelector('.taf-crossapp-app-manual');
+        var matchTargetSelect = card.querySelector('.taf-crossapp-match-target-select');
+        var matchSourceSelect = card.querySelector('.taf-crossapp-match-source-select');
+        var fmContainer = card.querySelector('.taf-crossapp-fieldmap-container');
+        var addFmBtn = card.querySelector('.taf-crossapp-add-fieldmap-btn');
+        var deleteBtn = card.querySelector('.taf-crossapp-delete-btn');
+        var buttonLabelRow = card.querySelector('.taf-crossapp-buttonlabel-row');
+        var buttonLabelInput = card.querySelector('.taf-crossapp-button-label');
+
+        if (kind === 'expand') {
+            buttonLabelRow.style.display = '';
+        }
+
+        populateAppSelect(appSelect);
+        populateHeaderFieldSelect(matchSourceSelect, savedCfg && savedCfg.matchSourceField);
+
+        function currentTargetAppId() {
+            return (appManualInput.value || '').trim() || appSelect.value || '';
+        }
+
+        function refreshFromTargetApp() {
+            var tId = currentTargetAppId();
+            if (!tId) return;
+            fetchTargetAppFields(tId, function (fields) {
+                if (!fields) return;
+                populateFieldSelect(matchTargetSelect, fields, null);
+                fmContainer.querySelectorAll('.taf-crossapp-fieldmap-row').forEach(function (row) {
+                    var srcSel = row.querySelector('.taf-crossapp-fm-source-select');
+                    populateFieldSelect(srcSel, fields, null);
+                });
+            });
+        }
+
+        appSelect.addEventListener('change', function () {
+            appManualInput.value = '';
+            refreshFromTargetApp();
+        });
+        appManualInput.addEventListener('change', refreshFromTargetApp);
+
+        addFmBtn.addEventListener('click', function () {
+            appendCrossAppFieldMapRow(fmContainer, kind, tableCodeForExpand, currentTargetAppId(), null);
+        });
+
+        deleteBtn.addEventListener('click', function () {
+            card.remove();
+        });
+
+        container.appendChild(card);
+
+        if (savedCfg) {
+            if (savedCfg.targetAppId) {
+                if (optionExists(appSelect, savedCfg.targetAppId)) {
+                    appSelect.value = savedCfg.targetAppId;
+                } else {
+                    // 存的App不在目前Space清單(可能是清單抓取失敗、或設定當時在別的Space)，退回手動輸入框
+                    appManualInput.value = savedCfg.targetAppId;
+                }
+            }
+            if (buttonLabelInput) buttonLabelInput.value = savedCfg.buttonLabel || '';
+
+            var tId = savedCfg.targetAppId || '';
+            if (tId) {
+                fetchTargetAppFields(tId, function (fields) {
+                    populateFieldSelect(matchTargetSelect, fields, savedCfg.matchTargetField);
+                    (savedCfg.fieldMappings || []).forEach(function (fm) {
+                        appendCrossAppFieldMapRow(fmContainer, kind, tableCodeForExpand, tId, fm);
+                    });
+                });
+            }
+        }
+
+        return card;
+    }
+
+    // 建立單一列「目標App欄位 → 填入欄位」的對應
+    function appendCrossAppFieldMapRow(container, kind, tableCodeForExpand, targetAppId, savedFm) {
+        var frag = els.crossAppFieldMapTemplate.content.cloneNode(true);
+        var row = frag.querySelector('.taf-crossapp-fieldmap-row');
+        var sourceSelect = row.querySelector('.taf-crossapp-fm-source-select');
+        var targetSelect = row.querySelector('.taf-crossapp-fm-target-select');
+        var deleteBtn = row.querySelector('.taf-crossapp-fm-delete-btn');
+
+        if (targetAppId) {
+            fetchTargetAppFields(targetAppId, function (fields) {
+                populateFieldSelect(sourceSelect, fields, savedFm && savedFm.sourceField);
+            });
+        }
+
+        if (kind === 'header') {
+            populateHeaderFieldSelect(targetSelect, savedFm && savedFm.targetField);
+        } else {
+            populateTargetFieldSelect(targetSelect, tableCodeForExpand);
+            if (savedFm && savedFm.targetField) targetSelect.value = savedFm.targetField;
+        }
+
+        deleteBtn.addEventListener('click', function () { row.remove(); });
+        container.appendChild(row);
+    }
+
+    // 收集單張跨App卡片的設定值
+    function collectCrossAppCard(card, isExpand) {
+        var appSelect = card.querySelector('.taf-crossapp-app-select');
+        var appManual = card.querySelector('.taf-crossapp-app-manual');
+        var targetAppId = (appManual.value || '').trim() || appSelect.value || '';
+
+        var targetAppName = '';
+        if (appSelect.value && appSelect.value === targetAppId) {
+            var opt = appSelect.options[appSelect.selectedIndex];
+            targetAppName = opt ? opt.textContent : '';
+        }
+
+        var matchTargetField = card.querySelector('.taf-crossapp-match-target-select').value;
+        var matchSourceField = card.querySelector('.taf-crossapp-match-source-select').value;
+
+        var fieldMappings = [];
+        card.querySelectorAll('.taf-crossapp-fieldmap-row').forEach(function (row) {
+            var sourceField = row.querySelector('.taf-crossapp-fm-source-select').value;
+            var targetField = row.querySelector('.taf-crossapp-fm-target-select').value;
+            if (sourceField && targetField) {
+                fieldMappings.push({ sourceField: sourceField, targetField: targetField });
+            }
+        });
+
+        var result = {
+            targetAppId: targetAppId,
+            targetAppName: targetAppName,
+            matchTargetField: matchTargetField,
+            matchSourceField: matchSourceField,
+            fieldMappings: fieldMappings
+        };
+
+        if (isExpand) {
+            var labelInput = card.querySelector('.taf-crossapp-button-label');
+            result.buttonLabel = (labelInput && labelInput.value.trim()) || '帶入明細';
+        }
+
+        return result;
+    }
+
+    els.addHeaderLookupBtn.addEventListener('click', function () {
+        createCrossAppCard('header', els.headerLookupsContainer, null, null);
+    });
 
     // ---- 2. Table group (one per subtable being configured) ----
     function createTableGroup(savedTableConfig) {
@@ -259,6 +505,8 @@
         var deleteBtn = group.querySelector('.taf-delete-table-btn');
         var rowPresetsContainer = group.querySelector('.taf-row-presets-container');
         var addRowPresetBtn = group.querySelector('.taf-add-row-preset-btn');
+        var crossAppExpandContainer = group.querySelector('.taf-crossapp-expand-container');
+        var addCrossAppExpandBtn = group.querySelector('.taf-add-crossapp-expand-btn');
 
         var inlineAddTableBtn = group.querySelector('.taf-inline-add-table-btn');
         inlineAddTableBtn.addEventListener('click', function () {
@@ -280,6 +528,10 @@
             createRowPresetCard(rowPresetsContainer, tableSelect.value, null);
         });
 
+        addCrossAppExpandBtn.addEventListener('click', function () {
+            createCrossAppCard('expand', crossAppExpandContainer, tableSelect.value, null);
+        });
+
         deleteBtn.addEventListener('click', function () {
             group.remove();
         });
@@ -288,6 +540,7 @@
         tableSelect.addEventListener('change', function () {
             rulesContainer.innerHTML = '';
             rowPresetsContainer.innerHTML = '';
+            crossAppExpandContainer.innerHTML = '';
         });
 
         els.tablesContainer.appendChild(group);
@@ -299,6 +552,9 @@
             });
             (savedTableConfig.rowPresets || []).forEach(function (preset) {
                 createRowPresetCard(rowPresetsContainer, savedTableConfig.tableCode, preset);
+            });
+            (savedTableConfig.crossAppExpands || []).forEach(function (expandCfg) {
+                createCrossAppCard('expand', crossAppExpandContainer, savedTableConfig.tableCode, expandCfg);
             });
         }
     }
@@ -555,6 +811,12 @@
             // No saved config yet — start with one empty table group for convenience.
             createTableGroup(null);
         }
+
+        if (parsed && parsed.headerLookups && parsed.headerLookups.length) {
+            parsed.headerLookups.forEach(function (hl) {
+                createCrossAppCard('header', els.headerLookupsContainer, null, hl);
+            });
+        }
     }
 
     els.saveBtn.addEventListener('click', function () {
@@ -627,10 +889,21 @@
                 });
                 rowPresets.push({ fields: fields });
             });
-            tables.push({ tableCode: tableCode, mappings: mappings, rowPresets: rowPresets });
+
+            var crossAppExpands = [];
+            group.querySelectorAll('.taf-crossapp-expand-container > .taf-crossapp-card').forEach(function (card) {
+                crossAppExpands.push(collectCrossAppCard(card, true));
+            });
+
+            tables.push({ tableCode: tableCode, mappings: mappings, rowPresets: rowPresets, crossAppExpands: crossAppExpands });
         });
 
-        var configObj = { tables: tables };
+        var headerLookups = [];
+        els.headerLookupsContainer.querySelectorAll('.taf-crossapp-card').forEach(function (card) {
+            headerLookups.push(collectCrossAppCard(card, false));
+        });
+
+        var configObj = { tables: tables, headerLookups: headerLookups };
 
         kintone.plugin.app.setConfig(
             { config: JSON.stringify(configObj) },

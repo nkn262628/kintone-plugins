@@ -1,13 +1,19 @@
 :root {
-  --taf-navy: #45496a;
-  --taf-blue-gray: #7d8bae;
-  --taf-coral: #e5857b;
-  --taf-coral-bg: #fdf1ef;
-  --taf-success: #5c8b6f;
-  --taf-bg: #eef0f6;
+  /* 貼近 kintone 原生介面的配色：白底、淺灰邊框、黑灰字，藍色作強調色 */
+  --taf-navy: #333333;
+  --taf-blue-gray: #8b96a1;
+  --taf-coral: #e2574c;
+  --taf-coral-bg: #fdecea;
+  --taf-success: #2e7d32;
+  --taf-bg: #f5f6f8;
   --taf-surface: #ffffff;
-  --taf-surface-sunken: #f6f7fb;
-  --taf-border: #dbdfec;
+  --taf-surface-sunken: #f7f8fa;
+  --taf-border: #e3e7e8;
+  /* 強調色：只用在今天新增的跨App功能上，跟舊功能做出區隔 */
+  --taf-accent: #3498db;
+  --taf-accent-bg: #eaf4fc;
+  --taf-accent-border: #b8dcf4;
+  --taf-muted: #aab2bb;
 }
 
 * {
@@ -50,9 +56,8 @@
 .taf-table-group {
   background: var(--taf-surface);
   border: 1px solid var(--taf-border);
-  border-radius: 12px;
+  border-radius: 3px;
   padding: 18px 20px 20px;
-  box-shadow: 0 1px 2px rgba(69, 73, 106, 0.06);
 }
 
 .taf-table-group-header {
@@ -87,7 +92,7 @@
 .taf-source-static-input,
 .taf-source-static-select {
   border: 1px solid var(--taf-border);
-  border-radius: 6px;
+  border-radius: 3px;
   padding: 7px 10px;
   font-size: 13px;
   color: var(--taf-navy);
@@ -103,7 +108,8 @@
 .taf-source-static-input:focus-visible,
 .taf-source-static-select:focus-visible {
   outline: none;
-  border-color: var(--taf-navy);
+  border-color: var(--taf-accent);
+  box-shadow: 0 0 0 2px var(--taf-accent-bg);
 }
 
 /* ---- Rule cards (nested, "sunken" surface) ---- */
@@ -111,30 +117,42 @@
 .taf-rules-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  border: 1px solid var(--taf-border);
+  border-radius: 3px;
+  overflow: hidden;
+  background: #fff;
 }
 
 .taf-rule-card {
-  border: 1px solid var(--taf-border);
-  border-radius: 10px;
-  padding: 16px 92px 16px 18px;
-  background: var(--taf-surface-sunken);
+  border: none;
+  border-bottom: 1px solid var(--taf-border);
+  border-radius: 0;
+  padding: 14px 92px 14px 18px;
+  background: var(--taf-surface);
   position: relative;
+}
+
+.taf-rule-card:last-child {
+  border-bottom: none;
+}
+
+.taf-rule-card:nth-child(even) {
+  background: var(--taf-surface-sunken);
 }
 
 .taf-rules-section {
   padding: 18px 20px 20px;
   margin-top: 14px;
-  border-radius: 10px;
+  border-radius: 3px;
   background: var(--taf-surface);
   border: 1px solid var(--taf-border);
 }
 
 /* 列預設值整區用底色圈起來，跟上面的規則區明確分開 */
 .taf-row-presets-section {
-  background: #eef1f8;
+  background: var(--taf-surface-sunken);
   border: 1px dashed var(--taf-border);
-  border-radius: 10px;
+  border-radius: 3px;
   padding: 18px 20px 20px;
   margin-top: 14px;
 }
@@ -252,8 +270,8 @@
 }
 
 .taf-row-preset-card {
-  border: 1px dashed var(--taf-border);
-  border-radius: 8px;
+  border: 1px solid var(--taf-border);
+  border-radius: 3px;
   padding: 12px 14px;
   background: #fff;
   margin-bottom: 10px;
@@ -435,7 +453,7 @@
 }
 
 .taf-radio-label input:focus-visible+span {
-  outline: 2px solid var(--taf-navy);
+  outline: 2px solid var(--taf-accent);
   outline-offset: 2px;
 }
 
@@ -462,25 +480,25 @@
 }
 
 .taf-btn-add {
-  background: var(--taf-blue-gray);
+  background: var(--taf-accent);
   color: #fff;
-  border: 1px solid var(--taf-blue-gray);
+  border: 1px solid var(--taf-accent);
 }
 
 .taf-btn-add:hover {
-  background: var(--taf-navy);
-  border-color: var(--taf-navy);
+  background: #2b82c0;
+  border-color: #2b82c0;
 }
 
 .taf-btn-save {
-  background: var(--taf-navy);
+  background: var(--taf-accent);
   color: #fff;
-  border: 1px solid var(--taf-navy);
+  border: 1px solid var(--taf-accent);
   padding: 9px 22px;
 }
 
 .taf-btn-save:hover {
-  background: #383c58;
+  background: #2b82c0;
 }
 
 .taf-btn-delete {
@@ -494,7 +512,7 @@
 }
 
 .taf-btn:focus-visible {
-  outline: 2px solid var(--taf-navy);
+  outline: 2px solid var(--taf-accent);
   outline-offset: 2px;
 }
 
@@ -515,12 +533,12 @@
 
 .taf-icon-btn-add {
   background: #fff;
-  color: var(--taf-blue-gray);
-  border: 1px solid var(--taf-blue-gray);
+  color: var(--taf-accent);
+  border: 1px solid var(--taf-accent);
 }
 
 .taf-icon-btn-add:hover {
-  background: var(--taf-blue-gray);
+  background: var(--taf-accent);
   color: #fff;
 }
 
@@ -536,7 +554,7 @@
 }
 
 .taf-icon-btn:focus-visible {
-  outline: 2px solid var(--taf-navy);
+  outline: 2px solid var(--taf-accent);
   outline-offset: 2px;
 }
 
@@ -569,6 +587,156 @@
   display: none;
 }
 
+
+/* ---- Cross-App lookup / expand：今天的主要功能，用強調色跟舊功能拉開視覺層級 ---- */
+
+.taf-section-block {
+  margin-top: 24px;
+  padding: 18px 20px 20px;
+  background: var(--taf-surface);
+  border: 1px solid var(--taf-border);
+  border-radius: 3px;
+}
+
+.taf-section-emphasis {
+  border: 1px solid var(--taf-accent-border);
+  background: var(--taf-accent-bg);
+}
+
+.taf-section-divider-emphasis {
+  color: var(--taf-accent);
+  font-size: 13px;
+}
+
+.taf-section-divider-emphasis::after {
+  background: var(--taf-accent-border);
+}
+
+.taf-tables-heading {
+  margin-top: 26px;
+  color: var(--taf-blue-gray);
+}
+
+.taf-crossapp-container,
+.taf-crossapp-expand-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.taf-crossapp-expand-section {
+  padding: 16px 18px 18px;
+  margin-bottom: 14px;
+  border-radius: 3px;
+  background: var(--taf-accent-bg);
+  border: 1px solid var(--taf-accent-border);
+}
+
+.taf-crossapp-card {
+  border: 1px solid var(--taf-border);
+  border-left: 3px solid var(--taf-accent);
+  border-radius: 0 3px 3px 0;
+  padding: 16px 18px;
+  background: #fff;
+}
+
+.taf-crossapp-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.taf-crossapp-app-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.taf-crossapp-app-manual-wrap {
+  font-size: 12px;
+  color: var(--taf-blue-gray);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.taf-crossapp-fieldmap-section {
+  margin-top: 6px;
+}
+
+.taf-crossapp-fieldmap-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+/* 清單非空 -> 隱藏對應的「＋新增」按鈕(跟既有規則相同套路) */
+.taf-crossapp-container:not(:empty)+#taf-add-header-lookup-btn {
+  display: none;
+}
+
+.taf-crossapp-fieldmap-container:not(:empty)+.taf-crossapp-add-fieldmap-btn {
+  display: none;
+}
+
+.taf-crossapp-expand-section:has(.taf-crossapp-expand-container:not(:empty)) .taf-add-crossapp-expand-btn {
+  display: none;
+}
+
+/* ---- 舊功能(同App內複製)收合區：弱化處理，預設收起、色調變淡 ---- */
+
+.taf-legacy-section {
+  margin-top: 14px;
+  border: 1px dashed var(--taf-border);
+  border-radius: 3px;
+  background: #fafbfc;
+}
+
+.taf-legacy-summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--taf-muted);
+  font-weight: 600;
+  list-style: none;
+  user-select: none;
+}
+
+.taf-legacy-summary::-webkit-details-marker {
+  display: none;
+}
+
+.taf-legacy-summary::before {
+  content: "▸ ";
+}
+
+.taf-legacy-section[open] .taf-legacy-summary::before {
+  content: "▾ ";
+}
+
+.taf-legacy-section .taf-rules-section,
+.taf-legacy-section .taf-row-presets-section {
+  margin-top: 0;
+  border: none;
+  background: transparent;
+  padding: 0 14px 14px;
+}
+
+.taf-legacy-section .taf-section-divider {
+  color: var(--taf-muted);
+  font-size: 11px;
+}
+
+.taf-legacy-section .taf-rule-card,
+.taf-legacy-section .taf-row-preset-card {
+  opacity: 0.82;
+}
 
 /* ---- Type warning ---- */
 

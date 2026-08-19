@@ -728,6 +728,36 @@
   //  2. 儲存前驗證與庫存同步（Submit 階段）
   //  由 desktop-events.js 分派呼叫（desktop-events.js 已同時涵蓋桌面/手機事件）。
   // ══════════════════════════════════════════════
+
+  // 🔧 [2026-08 新增] 手動輸入單號後，補查重防呆：
+  //    避免使用者輸入跟既有記錄重複的調撥單號，
+  //    導致本檔案的借還查詢（F_NO = "xxx" limit 1）抓錯記錄。
+  //    比照本檔案其他自行註冊的事件，用 bothEvents() 補齊手機版前綴。
+  kintone.events.on(bothEvents(['app.record.create.submit', 'app.record.edit.submit']), function (event) {
+    const record = event.record;
+    const noValue = record[F_NO] ? record[F_NO].value : '';
+
+    if (!noValue) {
+      event.error = '⛔ 存檔失敗：調撥單號不可留空。';
+      return event;
+    }
+
+    const isEdit = event.type.includes('.edit.');
+    const currentId = isEdit ? SP.getRecId() : null;
+
+    return kintone.api(kintone.api.url('/k/v1/records', true), 'GET', {
+      app: SELF_APP_ID,
+      query: F_NO + ' = "' + noValue.replace(/"/g, '\\"') + '"' +
+        (currentId ? ' and $id != "' + currentId + '"' : '') +
+        ' limit 1'
+    }).then(function (resp) {
+      if (resp.records.length > 0) {
+        event.error = '⛔ 存檔失敗：調撥單號「' + noValue + '」已被其他記錄使用，請確認後重新輸入。';
+      }
+      return event;
+    });
+  });
+
   Transfer.validateSubmit = function (event) {
     const record = event.record;
     // event.type 手機版會帶 mobile. 前綴，用 includes() 而非嚴格等於。
