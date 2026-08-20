@@ -11,7 +11,7 @@
         console.error('table-auto-fill-plugin: invalid config JSON', e);
         return;
     }
-    if ((!config.tables || !config.tables.length) && (!config.headerLookups || !config.headerLookups.length)) return;
+    if (!config.tables || !config.tables.length) return;
 
     // ==========================================
     // 0. 跨App共用工具
@@ -30,17 +30,128 @@
             .then(function (resp) { return resp.records; });
     }
 
-    // 右上角小提示，用來取代 alert()，不會擋住畫面操作
-    function tafShowToast(message) {
+    // 頁面中央的提示，仿 kintone 原生通知樣式，用來取代 alert() 與原本不明顯的右上角小提示
+    // type: 'success' | 'error' | 'info'（預設）
+    var tafToastContainer = null;
+
+    function tafEnsureToastStyle() {
+        if (document.getElementById('taf-toast-style')) return;
+        var style = document.createElement('style');
+        style.id = 'taf-toast-style';
+        style.textContent =
+            '@keyframes tafToastIn{from{opacity:0;transform:scale(.94) translateY(-8px);}to{opacity:1;transform:scale(1) translateY(0);}}' +
+            '@keyframes tafToastOut{from{opacity:1;transform:scale(1) translateY(0);}to{opacity:0;transform:scale(.94) translateY(-8px);}}' +
+            '@keyframes tafCheckCircle{to{stroke-dashoffset:0;}}' +
+            '@keyframes tafCheckMark{to{stroke-dashoffset:0;}}' +
+            '@keyframes tafCheckPop{0%{transform:scale(0);}70%{transform:scale(1.08);}100%{transform:scale(1);}}' +
+            '@keyframes tafSpin{to{transform:rotate(360deg);}}';
+        document.head.appendChild(style);
+    }
+
+    // 讓按鈕進入「處理中」狀態：鎖住不能重複點擊、換成 loading 文字與轉圈圈的圖示，
+    // 回傳一個 restore() 函式，處理完成(成功或失敗)後呼叫即可還原成原本的樣子
+    function tafSetButtonLoading(btnEl, loadingText) {
+        tafEnsureToastStyle();
+        var labelEl = btnEl.querySelector('.taf-btn-label');
+        var iconEl = btnEl.querySelector('.taf-btn-icon');
+        var originalLabel = labelEl ? labelEl.textContent : btnEl.textContent;
+        var originalOpacity = btnEl.style.opacity;
+        var originalCursor = btnEl.style.cursor;
+
+        btnEl.disabled = true;
+        btnEl.style.opacity = '.6';
+        btnEl.style.cursor = 'not-allowed';
+        if (labelEl) labelEl.textContent = loadingText;
+        if (iconEl) iconEl.style.animation = 'tafSpin .8s linear infinite';
+
+        var restored = false;
+        return function restore() {
+            if (restored) return;
+            restored = true;
+            btnEl.disabled = false;
+            btnEl.style.opacity = originalOpacity;
+            btnEl.style.cursor = originalCursor;
+            if (labelEl) labelEl.textContent = originalLabel;
+            if (iconEl) iconEl.style.animation = 'none';
+        };
+    }
+
+    function tafGetToastContainer() {
+        if (tafToastContainer && document.body.contains(tafToastContainer)) return tafToastContainer;
+        tafToastContainer = document.createElement('div');
+        tafToastContainer.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
+            'z-index:99999;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;';
+        document.body.appendChild(tafToastContainer);
+        return tafToastContainer;
+    }
+
+    function tafShowToast(message, type) {
+        tafEnsureToastStyle();
+        var palette = {
+            error: '#e2574c',
+            success: '#2e7d32',
+            info: '#3498db'
+        };
+        var accent = palette[type] || palette.info;
+        var container = tafGetToastContainer();
+
         var el = document.createElement('div');
-        el.textContent = message;
-        el.style.cssText = 'position:fixed;top:16px;right:16px;z-index:99999;background:#45496a;color:#fff;' +
-            'padding:10px 16px;border-radius:8px;font-size:13px;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.2);' +
-            'max-width:320px;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","PingFang TC","Microsoft JhengHei",sans-serif;';
-        document.body.appendChild(el);
-        setTimeout(function () {
-            if (el.parentNode) el.parentNode.removeChild(el);
-        }, 4500);
+        el.style.cssText = 'pointer-events:auto;background:#fff;border-radius:8px;' +
+            'padding:32px 36px 24px;box-shadow:0 12px 40px rgba(0,0,0,.22);min-width:380px;max-width:480px;' +
+            'display:flex;flex-direction:column;align-items:center;text-align:center;' +
+            'animation:tafToastIn .18s ease-out;' +
+            'font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","PingFang TC","Microsoft JhengHei",sans-serif;';
+
+        if (type === 'success') {
+            var iconWrap = document.createElement('div');
+            iconWrap.style.cssText = 'margin-bottom:14px;animation:tafCheckPop .3s ease-out;';
+            iconWrap.innerHTML =
+                '<svg width="64" height="64" viewBox="0 0 72 72">' +
+                '<circle cx="36" cy="36" r="32" fill="none" stroke="' + accent + '" stroke-width="4" ' +
+                'stroke-dasharray="201" stroke-dashoffset="201" style="animation:tafCheckCircle .45s ease-out forwards;"/>' +
+                '<path d="M21 37 L31 47 L51 25" fill="none" stroke="' + accent + '" stroke-width="4" ' +
+                'stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="44" stroke-dashoffset="44" ' +
+                'style="animation:tafCheckMark .3s ease-out .4s forwards;"/>' +
+                '</svg>';
+            el.appendChild(iconWrap);
+        }
+
+        var text = document.createElement('div');
+        text.textContent = message;
+        text.style.cssText = 'white-space:pre-line;margin-bottom:22px;font-size:16px;line-height:1.7;color:#333333;';
+        el.appendChild(text);
+
+        var btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;justify-content:center;';
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '確認';
+        btn.style.cssText = 'padding:9px 40px;border-radius:3px;border:1px solid ' + accent + ';' +
+            'background:' + accent + ';color:#fff;font-size:14px;font-weight:600;cursor:pointer;' +
+            'font-family:inherit;transition:opacity .12s;';
+        btn.addEventListener('mouseenter', function () { btn.style.opacity = '.88'; });
+        btn.addEventListener('mouseleave', function () { btn.style.opacity = '1'; });
+        btnRow.appendChild(btn);
+        el.appendChild(btnRow);
+
+        container.appendChild(el);
+
+        var removed = false;
+        function removeToast() {
+            if (removed) return;
+            removed = true;
+            el.style.animation = 'tafToastOut .18s ease-in forwards';
+            setTimeout(function () {
+                if (el.parentNode) el.parentNode.removeChild(el);
+                if (container.childNodes.length === 0 && container.parentNode) {
+                    container.parentNode.removeChild(container);
+                    tafToastContainer = null;
+                }
+            }, 180);
+        }
+
+        btn.addEventListener('click', removeToast);
     }
 
     // 查到多筆符合資料時，跳出一個簡易選擇視窗讓使用者自己挑一筆
@@ -54,12 +165,12 @@
                 'font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","PingFang TC","Microsoft JhengHei",sans-serif;';
 
             var box = document.createElement('div');
-            box.style.cssText = 'background:#fff;border-radius:10px;padding:20px;max-width:560px;width:90%;' +
+            box.style.cssText = 'background:#fff;border-radius:4px;padding:20px;max-width:560px;width:90%;' +
                 'max-height:70vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.25);';
 
             var title = document.createElement('div');
             title.textContent = '查到多筆符合的資料，請選擇一筆：';
-            title.style.cssText = 'font-weight:700;margin-bottom:14px;color:#45496a;font-size:14px;';
+            title.style.cssText = 'font-weight:700;margin-bottom:14px;color:#333333;font-size:14px;';
             box.appendChild(title);
 
             records.forEach(function (rec) {
@@ -72,9 +183,9 @@
                 });
                 item.textContent = parts.join('　|　');
                 item.style.cssText = 'display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:8px;' +
-                    'border:1px solid #dbdfec;border-radius:6px;background:#f6f7fb;cursor:pointer;font-size:13px;color:#45496a;';
-                item.addEventListener('mouseenter', function () { item.style.background = '#eef0f6'; });
-                item.addEventListener('mouseleave', function () { item.style.background = '#f6f7fb'; });
+                    'border:1px solid #e3e7e8;border-radius:3px;background:#f7f8fa;cursor:pointer;font-size:13px;color:#333333;';
+                item.addEventListener('mouseenter', function () { item.style.background = '#eaf4fc'; });
+                item.addEventListener('mouseleave', function () { item.style.background = '#f7f8fa'; });
                 item.addEventListener('click', function () {
                     document.body.removeChild(overlay);
                     resolve(rec);
@@ -85,8 +196,8 @@
             var cancelBtn = document.createElement('button');
             cancelBtn.type = 'button';
             cancelBtn.textContent = '取消';
-            cancelBtn.style.cssText = 'margin-top:4px;padding:7px 16px;border-radius:6px;border:1px solid #dbdfec;' +
-                'background:#fff;cursor:pointer;font-size:13px;color:#45496a;';
+            cancelBtn.style.cssText = 'margin-top:4px;padding:7px 16px;border-radius:3px;border:1px solid #e3e7e8;' +
+                'background:#fff;cursor:pointer;font-size:13px;color:#333333;';
             cancelBtn.addEventListener('click', function () {
                 document.body.removeChild(overlay);
                 resolve(null);
@@ -99,174 +210,193 @@
     }
 
     // ==========================================
-    // 0-1. 跨App查找：自動填入表頭欄位 (headerLookups)
-    // ==========================================
-    (config.headerLookups || []).forEach(function (lookup) {
-        if (!lookup.targetAppId || !lookup.matchTargetField || !lookup.matchSourceField
-            || !lookup.fieldMappings || !lookup.fieldMappings.length) return;
-
-        function applyLookupResult(record, sourceRecord) {
-            lookup.fieldMappings.forEach(function (fm) {
-                var targetCell = record[fm.targetField];
-                var sourceCell = sourceRecord[fm.sourceField];
-                if (targetCell && sourceCell) {
-                    targetCell.value = sourceCell.value;
-                }
-            });
-        }
-
-        function clearMappedFields(record) {
-            lookup.fieldMappings.forEach(function (fm) {
-                var cell = record[fm.targetField];
-                if (cell) cell.value = Array.isArray(cell.value) ? [] : '';
-            });
-        }
-
-        function runLookup(record) {
-            var matchCell = record[lookup.matchSourceField];
-            var matchValue = matchCell ? matchCell.value : '';
-            if (matchValue === '' || matchValue === null || matchValue === undefined) {
-                return Promise.resolve();
-            }
-
-            return tafQueryTargetApp(lookup.targetAppId, lookup.matchTargetField, matchValue)
-                .then(function (records) {
-                    if (!records.length) {
-                        tafShowToast('查無符合「' + matchValue + '」的資料，已清空相關欄位。');
-                        clearMappedFields(record);
-                        return;
-                    }
-                    if (records.length === 1) {
-                        applyLookupResult(record, records[0]);
-                        return;
-                    }
-                    var columns = lookup.fieldMappings.map(function (fm) {
-                        return { code: fm.sourceField, label: fm.sourceField };
-                    });
-                    return tafShowPickerModal(records, columns).then(function (picked) {
-                        if (picked) applyLookupResult(record, picked);
-                    });
-                })
-                .catch(function (err) {
-                    console.error('table-auto-fill-plugin: cross-app lookup failed', err);
-                    tafShowToast('跨App查詢失敗，請確認您對目標App是否有檢視權限，或稍後再試一次。');
-                });
-        }
-
-        // 使用者變更「比對值來源」欄位時即時查詢並帶入 —— 用 Promise 回傳事件本身,
-        // 讓kintone等查詢完成後才畫面渲染,避免資料還沒到就先顯示舊值。
-        kintone.events.on([
-            'app.record.create.change.' + lookup.matchSourceField,
-            'app.record.edit.change.' + lookup.matchSourceField
-        ], function (event) {
-            return runLookup(event.record).then(function () { return event; });
-        });
-    });
-
-    // ==========================================
     // 0-2. 跨App展開列：按鈕觸發，把查到的多筆記錄展開成子表格的多列
     // ==========================================
-    (config.tables || []).forEach(function (outerTableConfig) {
-        (outerTableConfig.crossAppExpands || []).forEach(function (expandCfg, expandIdx) {
-            if (!expandCfg.targetAppId || !expandCfg.matchTargetField || !expandCfg.matchSourceField
-                || !expandCfg.fieldMappings || !expandCfg.fieldMappings.length) return;
+    // getFieldElement() 官方不支援 SUBTABLE 及其內部欄位（無法判斷要對應哪一列），
+    // 所以改用「這個子表格是頁面上第幾個 .subtable-gaia」來定位，
+    // 順序抓自表單欄位定義順序（跟畫面呈現順序一致）。
+    function initCrossAppExpand() {
+        kintone.api(kintone.api.url('/k/v1/app/form/fields', true), 'GET', { app: kintone.app.getId() })
+            .then(function (resp) {
+                var subtableOrder = [];
+                Object.keys(resp.properties).forEach(function (code) {
+                    if (resp.properties[code].type === 'SUBTABLE') subtableOrder.push(code);
+                });
+                var domIndexOf = {};
+                subtableOrder.forEach(function (code, i) { domIndexOf[code] = i; });
 
-            var tableCode = outerTableConfig.tableCode;
-            var markerAttr = 'data-taf-expand-inserted-' + expandIdx;
+                (config.tables || []).forEach(function (outerTableConfig) {
+                    (outerTableConfig.crossAppExpands || []).forEach(function (expandCfg, expandIdx) {
+                        if (!expandCfg.targetAppId || !expandCfg.matchTargetField || !expandCfg.matchSourceField
+                            || !expandCfg.fieldMappings || !expandCfg.fieldMappings.length) return;
 
-            function handleExpandClick() {
-                var record = kintone.app.record.get().record;
-                var matchCell = record[expandCfg.matchSourceField];
-                var matchValue = matchCell ? matchCell.value : '';
-                if (matchValue === '' || matchValue === null || matchValue === undefined) {
-                    tafShowToast('請先填寫「比對值來源」欄位的值,再點擊此按鈕。');
-                    return;
-                }
+                        var tableCode = outerTableConfig.tableCode;
+                        var markerAttr = 'data-taf-expand-inserted-' + expandIdx;
+                        var lastExpandedRowSignatures = []; // 追蹤「上次這個按鈕帶入的那幾列」的內容特徵，下次點擊時用來精準清除
 
-                tafQueryTargetApp(expandCfg.targetAppId, expandCfg.matchTargetField, matchValue)
-                    .then(function (records) {
-                        if (!records.length) {
-                            tafShowToast('查無符合「' + matchValue + '」的資料。');
-                            return;
+                        // 用「這個 expand 設定會填入的欄位」組出一列的特徵字串，
+                        // 只要是這個按鈕帶入的列，換比對值時就能被辨識出來並清除，不會誤刪使用者手動輸入的其他列
+                        function rowSignature(row) {
+                            return expandCfg.fieldMappings.map(function (fm) {
+                                var cell = row.value[fm.targetField];
+                                var v = cell ? cell.value : '';
+                                return Array.isArray(v) ? v.join('\u0001') : String(v);
+                            }).join('\u0002');
                         }
 
-                        var table = record[tableCode];
-                        if (!table || !table.value.length) {
-                            tafShowToast('找不到子表格,請確認掛件設定是否正確。');
-                            return;
+                        function isEmptyRow(row) {
+                            return Object.keys(row.value).every(function (fc) {
+                                if (row.value[fc].type === 'CALC') return true; // 計算欄位一定有算出來的值,不代表使用者填過,判斷空白列時要略過
+                                var v = row.value[fc].value;
+                                return v === '' || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
+                            });
                         }
 
-                        // 用現有列(通常是空白列)當作樣板，複製出型態正確的空列，再把值填進去
-                        var templateRow = table.value[table.value.length - 1];
-                        var newRows = records.map(function (srcRecord) {
-                            var row = JSON.parse(JSON.stringify(templateRow));
-                            row.id = null;
-                            Object.keys(row.value).forEach(function (fieldCode) {
-                                var cell = row.value[fieldCode];
-                                if (cell.type === 'CHECK_BOX') {
-                                    cell.value = [];
-                                } else if (cell.type !== 'RADIO_BUTTON') {
-                                    cell.value = '';
-                                }
+                        function handleExpandClick(btnEl) {
+                            var record = kintone.app.record.get().record;
+                            var matchCell = record[expandCfg.matchSourceField];
+                            var matchValue = matchCell ? matchCell.value : '';
+                            if (matchValue === '' || matchValue === null || matchValue === undefined) {
+                                tafShowToast('請先填寫「比對值來源」欄位的值,再點擊此按鈕。', 'error');
+                                return;
+                            }
+
+                            var restoreBtn = btnEl ? tafSetButtonLoading(btnEl, '查詢中...') : function () {};
+
+                            tafQueryTargetApp(expandCfg.targetAppId, expandCfg.matchTargetField, matchValue)
+                                .then(function (records) {
+                                    if (!records.length) {
+                                        restoreBtn();
+                                        tafShowToast('查無符合「' + matchValue + '」的資料。', 'error');
+                                        return;
+                                    }
+
+                                    var table = record[tableCode];
+                                    if (!table || !table.value.length) {
+                                        restoreBtn();
+                                        tafShowToast('找不到子表格,請確認掛件設定是否正確。', 'error');
+                                        return;
+                                    }
+
+                                    var templateRow = table.value[table.value.length - 1];
+                                    var newRows = records.map(function (srcRecord) {
+                                        var row = JSON.parse(JSON.stringify(templateRow));
+                                        row.id = null;
+                                        Object.keys(row.value).forEach(function (fieldCode) {
+                                            var cell = row.value[fieldCode];
+                                            if (cell.type === 'CHECK_BOX') {
+                                                cell.value = [];
+                                            } else if (cell.type !== 'RADIO_BUTTON') {
+                                                cell.value = '';
+                                            }
+                                        });
+                                        expandCfg.fieldMappings.forEach(function (fm) {
+                                            var targetCell = row.value[fm.targetField];
+                                            var sourceCell = srcRecord[fm.sourceField];
+                                            if (targetCell && sourceCell) targetCell.value = sourceCell.value;
+                                        });
+                                        return row;
+                                    });
+
+                                    // 不管是連續點同一廠商、還是換了廠商，只要這個按鈕之前帶入過資料，
+                                    // 這次就先把上次這個按鈕帶入的那幾列清掉，避免新舊資料疊在一起；
+                                    // 使用者手動輸入或其他來源的列則不受影響
+                                    var baseRows = table.value;
+                                    var removedCount = 0;
+                                    if (lastExpandedRowSignatures.length) {
+                                        var remainingSignatures = lastExpandedRowSignatures.slice();
+                                        baseRows = table.value.filter(function (row) {
+                                            var idx = remainingSignatures.indexOf(rowSignature(row));
+                                            if (idx === -1) return true;
+                                            remainingSignatures.splice(idx, 1);
+                                            removedCount++;
+                                            return false;
+                                        });
+                                    }
+
+                                    var isSingleEmptyRow = baseRows.length === 1 && isEmptyRow(baseRows[0]);
+                                    table.value = (baseRows.length === 0 || isSingleEmptyRow) ? newRows : baseRows.concat(newRows);
+
+                                    kintone.app.record.set({ record: record });
+                                    lastExpandedRowSignatures = newRows.map(rowSignature);
+                                    restoreBtn();
+
+                                    tafShowToast(
+                                        removedCount > 0
+                                            ? '已重新帶入 ' + newRows.length + ' 筆資料。'
+                                            : '已帶入 ' + newRows.length + ' 筆資料。',
+                                        'success'
+                                    );
+                                })
+                                .catch(function (err) {
+                                    restoreBtn();
+                                    console.error('table-auto-fill-plugin: cross-app expand failed', err);
+                                    tafShowToast('跨App查詢失敗，請確認您對目標App是否有檢視權限，或稍後再試一次。', 'error');
+                                });
+                        }
+
+                        function insertButtonIfNeeded() {
+                            var idx = domIndexOf[tableCode];
+                            if (idx === undefined) return;
+                            var allSubtables = document.querySelectorAll('.subtable-gaia');
+                            var space = allSubtables[idx];
+                            if (!space || space.getAttribute(markerAttr)) return;
+                            space.setAttribute(markerAttr, '1');
+
+                            tafEnsureToastStyle();
+
+                            var btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.style.cssText = 'display:inline-flex;align-items:center;gap:6px;margin:10px 0 12px;' +
+                                'padding:7px 18px;border-radius:4px;border:1px solid #3498db;background:#fff;color:#3498db;' +
+                                'font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;' +
+                                'transition:background .15s ease,box-shadow .15s ease,opacity .15s ease;';
+
+                            var icon = document.createElement('span');
+                            icon.className = 'taf-btn-icon';
+                            icon.setAttribute('aria-hidden', 'true');
+                            icon.style.cssText = 'display:inline-flex;flex-shrink:0;line-height:0;';
+                            icon.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none">' +
+                                '<path d="M8 2v7.5M8 9.5L4.8 6.3M8 9.5l3.2-3.2" stroke="currentColor" stroke-width="1.6" ' +
+                                'stroke-linecap="round" stroke-linejoin="round"/>' +
+                                '<path d="M3 12.5v.5a1.5 1.5 0 001.5 1.5h7a1.5 1.5 0 001.5-1.5v-.5" stroke="currentColor" ' +
+                                'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+                            var label = document.createElement('span');
+                            label.className = 'taf-btn-label';
+                            label.textContent = expandCfg.buttonLabel || '帶入明細';
+
+                            btn.appendChild(icon);
+                            btn.appendChild(label);
+
+                            btn.addEventListener('mouseenter', function () {
+                                if (btn.disabled) return;
+                                btn.style.background = '#eaf4fc';
+                                btn.style.boxShadow = '0 2px 8px rgba(52,152,219,.2)';
                             });
-                            expandCfg.fieldMappings.forEach(function (fm) {
-                                var targetCell = row.value[fm.targetField];
-                                var sourceCell = srcRecord[fm.sourceField];
-                                if (targetCell && sourceCell) targetCell.value = sourceCell.value;
+                            btn.addEventListener('mouseleave', function () {
+                                btn.style.background = '#fff';
+                                btn.style.boxShadow = 'none';
                             });
-                            return row;
+                            btn.addEventListener('click', function () { handleExpandClick(btn); });
+
+                            if (space.parentNode) {
+                                space.parentNode.insertBefore(btn, space);
+                            }
+                        }
+
+                        kintone.events.on(['app.record.create.show', 'app.record.edit.show'], function (event) {
+                            insertButtonIfNeeded();
+                            return event;
                         });
-
-                        // 如果子表格目前只有一列，且使用者還沒填過任何東西，直接取代掉那個空白列；
-                        // 否則(使用者已經手動填了東西，或已經有多列)，用附加的方式，不覆蓋既有資料。
-                        var firstRow = table.value[0];
-                        var isSingleEmptyRow = table.value.length === 1 && Object.keys(firstRow.value).every(function (fc) {
-                            var v = firstRow.value[fc].value;
-                            return v === '' || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
-                        });
-
-                        table.value = isSingleEmptyRow ? newRows : table.value.concat(newRows);
-
-                        kintone.app.record.set({ record: record });
-                        tafShowToast('已帶入 ' + newRows.length + ' 筆資料。');
-                    })
-                    .catch(function (err) {
-                        console.error('table-auto-fill-plugin: cross-app expand failed', err);
-                        tafShowToast('跨App查詢失敗，請確認您對目標App是否有檢視權限，或稍後再試一次。');
                     });
-            }
-
-            function insertButtonIfNeeded() {
-                var space;
-                try {
-                    space = kintone.app.record.getFieldElement(tableCode);
-                } catch (e) {
-                    return;
-                }
-                if (!space || space.getAttribute(markerAttr)) return;
-                space.setAttribute(markerAttr, '1');
-
-                var btn = document.createElement('button');
-                btn.type = 'button';
-                btn.textContent = expandCfg.buttonLabel || '帶入明細';
-                btn.style.cssText = 'margin-bottom:8px;padding:6px 14px;border-radius:6px;border:1px solid #7d8bae;' +
-                    'background:#fff;color:#45496a;font-size:13px;cursor:pointer;' +
-                    'font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","PingFang TC","Microsoft JhengHei",sans-serif;';
-                btn.addEventListener('mouseenter', function () { btn.style.background = '#eef0f6'; });
-                btn.addEventListener('mouseleave', function () { btn.style.background = '#fff'; });
-                btn.addEventListener('click', handleExpandClick);
-
-                if (space.parentNode) {
-                    space.parentNode.insertBefore(btn, space);
-                }
-            }
-
-            kintone.events.on(['app.record.create.show', 'app.record.edit.show'], function (event) {
-                insertButtonIfNeeded();
-                return event;
+                });
+            })
+            .catch(function (err) {
+                console.error('table-auto-fill-plugin: failed to fetch fields for subtable DOM mapping', err);
             });
-        });
-    });
+    }
+    initCrossAppExpand();
 
     if (!config.tables || !config.tables.length) return;
 

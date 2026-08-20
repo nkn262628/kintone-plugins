@@ -40,8 +40,15 @@
 .taf-desc {
   font-size: 13px;
   color: var(--taf-blue-gray);
-  line-height: 1.7;
-  margin: 0 0 22px;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.taf-section-desc {
+  font-size: 12.5px;
+  color: var(--taf-blue-gray);
+  line-height: 1.6;
+  margin: -8px 0 16px;
 }
 
 /* ---- Table group (outer) card ---- */
@@ -183,28 +190,33 @@
 
 /* 這是 tooltip 的黑色文字框 */
 .taf-info-icon::after {
- content: attr(data-tooltip);
-    position: absolute;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 240px; /* 從 220px 稍微加寬，避免大字體頻繁折行 */
-    background-color: var(--taf-navy);
-    color: #ffffff;
-    padding: 10px 14px; /* 稍微增加內距，多點呼吸空間 */
-    border-radius: 6px;
-    font-size: 14px; /* 🔍 字體放大：從 12px 改為 14px */
-    font-weight: normal;
-    line-height: 1.6; /* 增加一點行高，提升閱讀性 */
-    white-space: pre-wrap; /* 允許解析 &#10; 的斷行指令 */
-    text-align: left;
-    box-shadow: 0 4px 12px rgba(69, 73, 106, 0.2);
-    /* 預設隱藏與動畫設定 */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
-    pointer-events: none;
-    z-index: 100;
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  /* 從 220px 稍微加寬，避免大字體頻繁折行 */
+  background-color: var(--taf-navy);
+  color: #ffffff;
+  padding: 10px 14px;
+  /* 稍微增加內距，多點呼吸空間 */
+  border-radius: 6px;
+  font-size: 14px;
+  /* 🔍 字體放大：從 12px 改為 14px */
+  font-weight: normal;
+  line-height: 1.6;
+  /* 增加一點行高，提升閱讀性 */
+  white-space: pre-wrap;
+  /* 允許解析 &#10; 的斷行指令 */
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(69, 73, 106, 0.2);
+  /* 預設隱藏與動畫設定 */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
 }
 
 /* 這是 tooltip 下方的倒三角形 */
@@ -599,8 +611,8 @@
 }
 
 .taf-section-emphasis {
-  border: 1px solid var(--taf-accent-border);
-  background: var(--taf-accent-bg);
+  border: 1px solid var(--taf-border);
+  background: var(--taf-surface);
 }
 
 .taf-section-divider-emphasis {
@@ -612,8 +624,42 @@
   background: var(--taf-accent-border);
 }
 
+/* 表格卡片內的「展開列」小標：跟最上面①用同一套 accent 色會讓人以為兩個是同層級的功能，
+   這裡故意降級處理——只用一個小徽章點出「也是跨App」，標題本身維持中性色，
+   讓視覺上清楚它是「這張表格卡片底下的其中一個設定」，不是跟①平行的另一個大功能。 */
+.taf-section-divider-nested {
+  color: var(--taf-navy);
+}
+
+.taf-section-divider-nested span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.taf-section-divider-nested span:first-child::before {
+  content: "跨 App";
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--taf-accent);
+  background: var(--taf-accent-bg);
+  border: 1px solid var(--taf-accent-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.taf-section-desc-nested {
+  margin-top: -8px;
+  margin-bottom: 14px;
+}
+
+.taf-section-desc-nested strong {
+  color: var(--taf-navy);
+  font-weight: 700;
+}
+
 .taf-tables-heading {
-  margin-top: 26px;
   color: var(--taf-blue-gray);
 }
 
@@ -625,12 +671,40 @@
   margin-bottom: 10px;
 }
 
+.taf-crossapp-container:empty,
+.taf-crossapp-expand-container:empty,
+.taf-tables-container:empty {
+  margin-bottom: 0;
+}
+
+/* 加入一個有文字標籤的「新增」按鈕，取代原本容易被忽略、
+   位置看起來像貼錯的孤立圓形 + 號 */
+.taf-btn-add-labeled {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  color: var(--taf-accent);
+  border: 1px dashed var(--taf-accent-border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  width: 100%;
+  justify-content: center;
+}
+
+.taf-btn-add-labeled:hover {
+  background: var(--taf-accent-bg);
+  border-style: solid;
+}
+
 .taf-crossapp-expand-section {
   padding: 16px 18px 18px;
   margin-bottom: 14px;
   border-radius: 3px;
-  background: var(--taf-accent-bg);
-  border: 1px solid var(--taf-accent-border);
+  background: var(--taf-surface-sunken);
+  border: 1px solid var(--taf-border);
 }
 
 .taf-crossapp-card {
@@ -676,12 +750,21 @@
   flex-wrap: wrap;
 }
 
-/* 清單非空 -> 隱藏對應的「＋新增」按鈕(跟既有規則相同套路) */
-.taf-crossapp-container:not(:empty)+#taf-add-header-lookup-btn {
+.taf-crossapp-fm-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 欄位對應清單非空 -> 隱藏卡片底部那顆＋，避免跟每一列自己的＋重複 */
+.taf-crossapp-fieldmap-container:not(:empty)+.taf-crossapp-add-fieldmap-btn {
   display: none;
 }
 
-.taf-crossapp-fieldmap-container:not(:empty)+.taf-crossapp-add-fieldmap-btn {
+/* 清單非空 -> 隱藏對應的「＋新增」按鈕(跟既有規則相同套路) */
+.taf-crossapp-container:not(:empty)+#taf-add-header-lookup-btn {
   display: none;
 }
 
@@ -722,10 +805,19 @@
 
 .taf-legacy-section .taf-rules-section,
 .taf-legacy-section .taf-row-presets-section {
-  margin-top: 0;
-  border: none;
-  background: transparent;
-  padding: 0 14px 14px;
+  margin: 14px 14px 0;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--taf-border);
+  border-radius: 3px;
+  background: #fff;
+}
+
+/* 「列預設值」用底色跟上面的「規則」卡片區分開，兩張卡片各自獨立、有明確邊界，
+   不會再像扁平清單一樣中間空一大塊看起來像壞掉 */
+.taf-legacy-section .taf-row-presets-section {
+  margin-bottom: 14px;
+  background: var(--taf-surface-sunken);
+  border-style: dashed;
 }
 
 .taf-legacy-section .taf-section-divider {

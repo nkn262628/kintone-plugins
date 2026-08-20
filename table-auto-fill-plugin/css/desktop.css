@@ -1,0 +1,10 @@
+.subtable-gaia thead th {
+    font-weight: 700 !important;
+}
+.subtable-gaia tbody td {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+.subtable-gaia tbody tr:hover {
+    background-color: #f7fbfe;
+}

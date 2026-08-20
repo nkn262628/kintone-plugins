@@ -218,8 +218,6 @@
         ruleTemplate: document.getElementById('taf-rule-template'),
         rowPresetTemplate: document.getElementById('taf-row-preset-template'),
         fieldValueTemplate: document.getElementById('taf-field-value-template'),
-        headerLookupsContainer: document.getElementById('taf-header-lookups-container'),
-        addHeaderLookupBtn: document.getElementById('taf-add-header-lookup-btn'),
         crossAppCardTemplate: document.getElementById('taf-crossapp-card-template'),
         crossAppFieldMapTemplate: document.getElementById('taf-crossapp-fieldmap-template')
     };
@@ -317,9 +315,11 @@
         if (!fields) return;
         var prevValue = savedValue || selectEl.value;
         selectEl.innerHTML = '';
+        var EXCLUDED_TYPES = ['SUBTABLE', 'GROUP', 'RECORD_NUMBER', 'CREATOR', 'CREATED_TIME',
+            'MODIFIER', 'UPDATED_TIME', 'STATUS', 'STATUS_ASSIGNEE', 'CATEGORY'];
         Object.keys(fields).forEach(function (code) {
             var f = fields[code];
-            if (f.type === 'SUBTABLE' || f.type === 'GROUP') return;
+            if (EXCLUDED_TYPES.indexOf(f.type) !== -1) return;
             var opt = document.createElement('option');
             opt.value = code;
             opt.textContent = f.label + '（' + code + '）';
@@ -354,8 +354,13 @@
         var fmContainer = card.querySelector('.taf-crossapp-fieldmap-container');
         var addFmBtn = card.querySelector('.taf-crossapp-add-fieldmap-btn');
         var deleteBtn = card.querySelector('.taf-crossapp-delete-btn');
+        var inlineAddBtn = card.querySelector('.taf-crossapp-inline-add-btn');
         var buttonLabelRow = card.querySelector('.taf-crossapp-buttonlabel-row');
         var buttonLabelInput = card.querySelector('.taf-crossapp-button-label');
+
+        inlineAddBtn.addEventListener('click', function () {
+            createCrossAppCard(kind, container, tableCodeForExpand, null);
+        });
 
         if (kind === 'expand') {
             buttonLabelRow.style.display = '';
@@ -412,11 +417,23 @@
             if (tId) {
                 fetchTargetAppFields(tId, function (fields) {
                     populateFieldSelect(matchTargetSelect, fields, savedCfg.matchTargetField);
-                    (savedCfg.fieldMappings || []).forEach(function (fm) {
-                        appendCrossAppFieldMapRow(fmContainer, kind, tableCodeForExpand, tId, fm);
-                    });
+                    var savedMappings = savedCfg.fieldMappings || [];
+                    if (savedMappings.length) {
+                        savedMappings.forEach(function (fm) {
+                            appendCrossAppFieldMapRow(fmContainer, kind, tableCodeForExpand, tId, fm);
+                        });
+                    } else {
+                        // 舊資料存的時候剛好0組對應，一樣至少顯示一列空白列，維持跟新卡片一致的預設狀態
+                        appendCrossAppFieldMapRow(fmContainer, kind, tableCodeForExpand, tId, null);
+                    }
                 });
+            } else {
+                // 有存過設定但當時沒選目標App(理論上不該發生)，一樣給一列空白列可以填
+                appendCrossAppFieldMapRow(fmContainer, kind, tableCodeForExpand, '', null);
             }
+        } else {
+            // 全新卡片：預設就顯示一組空白的欄位對應，不用使用者自己按+才看得到
+            appendCrossAppFieldMapRow(fmContainer, kind, tableCodeForExpand, currentTargetAppId(), null);
         }
 
         return card;
@@ -429,6 +446,11 @@
         var sourceSelect = row.querySelector('.taf-crossapp-fm-source-select');
         var targetSelect = row.querySelector('.taf-crossapp-fm-target-select');
         var deleteBtn = row.querySelector('.taf-crossapp-fm-delete-btn');
+        var inlineAddBtn = row.querySelector('.taf-crossapp-fm-inline-add-btn');
+
+        inlineAddBtn.addEventListener('click', function () {
+            appendCrossAppFieldMapRow(container, kind, tableCodeForExpand, targetAppId, null);
+        });
 
         if (targetAppId) {
             fetchTargetAppFields(targetAppId, function (fields) {
@@ -486,10 +508,6 @@
 
         return result;
     }
-
-    els.addHeaderLookupBtn.addEventListener('click', function () {
-        createCrossAppCard('header', els.headerLookupsContainer, null, null);
-    });
 
     // ---- 2. Table group (one per subtable being configured) ----
     function createTableGroup(savedTableConfig) {
@@ -556,6 +574,10 @@
             (savedTableConfig.crossAppExpands || []).forEach(function (expandCfg) {
                 createCrossAppCard('expand', crossAppExpandContainer, savedTableConfig.tableCode, expandCfg);
             });
+        } else {
+            // 新增的表格卡片一樣預設展開一筆，讓使用者一看就懂「展開列」在講什麼，
+            // 不用先摸索才知道要點哪裡。
+            createCrossAppCard('expand', crossAppExpandContainer, tableSelect.value, null);
         }
     }
 
@@ -811,12 +833,6 @@
             // No saved config yet — start with one empty table group for convenience.
             createTableGroup(null);
         }
-
-        if (parsed && parsed.headerLookups && parsed.headerLookups.length) {
-            parsed.headerLookups.forEach(function (hl) {
-                createCrossAppCard('header', els.headerLookupsContainer, null, hl);
-            });
-        }
     }
 
     els.saveBtn.addEventListener('click', function () {
@@ -898,19 +914,13 @@
             tables.push({ tableCode: tableCode, mappings: mappings, rowPresets: rowPresets, crossAppExpands: crossAppExpands });
         });
 
-        var headerLookups = [];
-        els.headerLookupsContainer.querySelectorAll('.taf-crossapp-card').forEach(function (card) {
-            headerLookups.push(collectCrossAppCard(card, false));
-        });
-
-        var configObj = { tables: tables, headerLookups: headerLookups };
+        var configObj = { tables: tables };
 
         kintone.plugin.app.setConfig(
             { config: JSON.stringify(configObj) },
             function () {
                 // 1. 更新畫面上的提示訊息
                 els.saveMsg.textContent = '已儲存！即將自動返回應用程式設定...';
-                els.saveMsg.style.color = '#5c8b6f'; // 視你的 UI 需求，也可以動態加個顏色
 
                 // 2. 延遲 1.5 秒後跳轉回 kintone 後台
                 setTimeout(function () {
